@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and Test (detects Gradle or Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Determine build tool and run build/tests
+        id: build
+        run: |
+          set -euo pipefail
+
+          # Detect Gradle (wrapper) or Maven (pom.xml)
+          if [ -f "./gradlew" ] || [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            echo "Detected Gradle project."
+
+            # (optional) cache Gradle (you can add actions/cache for speed if desired)
+            echo "##[group]Gradle build started"
+            echo "::endgroup::"
+
+            # run build with Gradle wrapper if present, fallback to ./gradle
+            if [ -f "./gradlew" ]; then
+              chmod +x ./gradlew
+              ./gradlew --version
+              # ensure Gradle uses the installed JDK (normal behaviour on runner)
+              ./gradlew clean build -x :compileTestJava || ./gradlew build || true
+              ./gradlew test
+            else
+              gradle --version
+              gradle clean build
+              gradle test
+            fi
+
+            echo "build_tool=gradle" >> $GITHUB_OUTPUT
+
+          elif [ -f "pom.xml" ]; then
+            echo "Detected Maven project."
+
+            # run maven build
+            mvn -v
+            mvn -B -DskipTests=false clean verify
+
+            echo "build_tool=maven" >> $GITHUB_OUTPUT
+          else
+            echo "No Maven or Gradle files found. Exiting with error."
+            exit 2
+          fi
+
+      - name: Upload test results (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/build/test-results/**/*.xml
+            **/target/surefire-reports/*.xml
+            **/target/failsafe-reports/*.xml
+            **/build/reports/tests/**/*.html
+
+      - name: Show short summary
+        run: |
+          echo "Build job finished. Check test artifacts and logs for details."
