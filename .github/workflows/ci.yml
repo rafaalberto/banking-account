@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-and-test:
-    name: Build and Test (detects Gradle or Maven)
+    name: build-and-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
