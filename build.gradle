@@ -5,13 +5,13 @@ plugins {
 ext {
     undertowVersion = '2.0.1.Final'
     jacksonVersion = '2.9.7'
-    h2DatabaseVersion = '1.4.199'
+    h2DatabaseVersion = '2.2.224'
     slf4jVersion = '1.7.28'
     commonsLangVersion = '3.9'
     junitVersion = '4.12'
     assertVersion = '3.13.2'
     mockitoVersion = '3.0.0'
-    restAssuredVersion = '4.1.2'
+    restAssuredVersion = '5.4.0'
 }
 
 group 'com.api.account'

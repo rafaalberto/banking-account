@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 import static com.api.account.utils.HttpUtils.APP_HOST;
 import static com.api.account.utils.HttpUtils.APP_PORT;
 
-public class AccountApiApplication {
+public class BankingAccountApplication {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AccountApiApplication.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BankingAccountApplication.class);
 
     public static void main(String[] args) {
         Undertow.Builder builder = Undertow.builder();

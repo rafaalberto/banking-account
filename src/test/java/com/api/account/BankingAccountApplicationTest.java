@@ -19,6 +19,6 @@ import static org.junit.runners.Suite.*;
         TransactionResourceTest.class
 })
 
-public class AccountApiApplicationTest {
+public class BankingAccountApplicationTest {
 
 }
