@@ -3,21 +3,28 @@ plugins {
 }
 
 ext {
-    undertowVersion = '2.0.1.Final'
-    jacksonVersion = '2.9.7'
+    undertowVersion = '2.3.20.Final'
+    jacksonVersion = '2.17.0'
     h2DatabaseVersion = '2.2.224'
-    slf4jVersion = '1.7.28'
-    commonsLangVersion = '3.9'
-    junitVersion = '4.12'
-    assertVersion = '3.13.2'
-    mockitoVersion = '3.0.0'
-    restAssuredVersion = '5.4.0'
+    slf4jVersion = '2.0.13'
+    commonsLangVersion = '3.18.0'
+    junitJupiterVersion = '5.11.0'
+    junitPlatformLauncher = '1.11.0'
+    assertVersion = '3.26.0'
+    mockitoVersion = '5.11.0'
+    restAssuredVersion = '5.5.5'
 }
 
-group 'com.api.account'
-version '1.0.0-SNAPSHOT'
+group = 'com.api.account'
+version = '1.0.0-SNAPSHOT'
 
-sourceCompatibility = 11
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
     mavenCentral()
@@ -30,8 +37,19 @@ dependencies {
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "org.slf4j:slf4j-simple:${slf4jVersion}"
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
-    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitJupiterVersion}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformLauncher}"
     testImplementation "org.assertj:assertj-core:${assertVersion}"
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation "io.rest-assured:rest-assured:${restAssuredVersion}"
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "short"
+        showStandardStreams = false
+    }
 }
