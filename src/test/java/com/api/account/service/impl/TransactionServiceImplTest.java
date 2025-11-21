@@ -5,8 +5,9 @@ import com.api.account.model.Account;
 import com.api.account.model.Transaction;
 import com.api.account.service.AccountService;
 import com.api.account.service.TransactionService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -34,7 +35,7 @@ public class TransactionServiceImplTest {
     @Mock
     private AccountService accountService = new AccountServiceImpl();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         account = new Account(1L, "Rafael");

@@ -5,8 +5,9 @@ import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.impl.AccountDaoImpl;
 import com.api.account.service.AccountService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -28,7 +29,7 @@ public class AccountServiceImplTest {
     @Mock
     private AccountDao accountDao = new AccountDaoImpl();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         accountService = new AccountServiceImpl(accountDao);

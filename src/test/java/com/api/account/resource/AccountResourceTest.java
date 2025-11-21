@@ -8,9 +8,9 @@ import com.api.account.utils.NumericConverter;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.undertow.Undertow;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
@@ -26,7 +26,7 @@ public class AccountResourceTest {
 
     private Undertow server;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Undertow.Builder builder = Undertow.builder();
         builder.addHttpListener(TEST_PORT, APP_HOST);
@@ -111,7 +111,7 @@ public class AccountResourceTest {
         accountDao.delete(accountId);
     }
 
-    @After
+    @AfterEach
     public void finish() {
         server.stop();
         accountDao.deleteAll();

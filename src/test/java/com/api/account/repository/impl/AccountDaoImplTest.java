@@ -2,8 +2,9 @@ package com.api.account.repository.impl;
 
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,7 +18,8 @@ public class AccountDaoImplTest {
 
     private AccountDao accountDao;
 
-    public AccountDaoImplTest () {
+    @BeforeEach
+    public void setUp () {
         accountDao = new AccountDaoImpl();
     }
 
@@ -98,7 +100,7 @@ public class AccountDaoImplTest {
         assertThat(accountReceiver.getBalance()).isEqualTo(convertTwoDecimalPlace(new BigDecimal(700)));
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         accountDao.deleteAll();
     }
