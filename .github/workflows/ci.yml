@@ -18,11 +18,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 11
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '11'
+          java-version: '21'
 
       - name: Determine build tool and run build/tests
         id: build
@@ -37,12 +37,12 @@ jobs:
             echo "##[group]Gradle build started"
             echo "::endgroup::"
 
-            # run build with Gradle wrapper if present, fallback to ./gradle
+            # run build with Gradle wrapper if present, fallback to gradle
             if [ -f "./gradlew" ]; then
               chmod +x ./gradlew
               ./gradlew --version
-              # ensure Gradle uses the installed JDK (normal behaviour on runner)
-              ./gradlew clean build -x :compileTestJava || ./gradlew build || true
+              # build & test using wrapper
+              ./gradlew clean build || ./gradlew build || true
               ./gradlew test
             else
               gradle --version
