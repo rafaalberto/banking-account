@@ -1,5 +1,6 @@
 package com.api.account.repository.impl;
 
+import com.api.account.database.DatabaseConnection;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
 import org.junit.jupiter.api.AfterEach;
@@ -20,6 +21,7 @@ public class AccountDaoImplTest {
 
     @BeforeEach
     public void setUp () {
+        DatabaseConnection.createTables();
         accountDao = new AccountDaoImpl();
     }
 

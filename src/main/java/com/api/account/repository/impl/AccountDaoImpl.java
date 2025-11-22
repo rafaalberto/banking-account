@@ -99,7 +99,6 @@ public class AccountDaoImpl implements AccountDao {
             Account account = null;
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setLong(1, id);
-            preparedStatement.execute();
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 account = new Account();

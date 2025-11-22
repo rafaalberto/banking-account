@@ -1,5 +1,6 @@
 package com.api.account.resource;
 
+import com.api.account.database.DatabaseConnection;
 import com.api.account.model.Account;
 import com.api.account.model.Message;
 import com.api.account.model.Transaction;
@@ -30,6 +31,8 @@ public class TransactionResourceTest {
 
     @BeforeEach
     public void setUp() {
+        DatabaseConnection.createTables();
+        
         Undertow.Builder builder = Undertow.builder();
         builder.addHttpListener(TEST_PORT, APP_HOST);
         builder.setHandler(ROUTES);
