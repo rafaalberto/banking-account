@@ -11,9 +11,9 @@ public class DatabaseConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseConnection.class);
 
-    private static final String DROP_TABLE_ACCOUNTS = "DROP TABLE ACCOUNTS IF EXISTS ";
+    private static final String DROP_TABLE_ACCOUNTS = "DROP TABLE IF EXISTS accounts";
 
-    private static final String CREATE_TABLE_ACCOUNTS = "CREATE TABLE ACCOUNTS " +
+    private static final String CREATE_TABLE_ACCOUNTS = "CREATE TABLE IF NOT EXISTS accounts " +
             "(id bigint auto_increment NOT NULL, name VARCHAR(255) NOT NULL, balance DECIMAL(10,2) NOT NULL, PRIMARY KEY( id ))";
 
     public static void connect() {
