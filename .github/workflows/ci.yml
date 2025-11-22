@@ -32,6 +32,7 @@ jobs:
           # Detect Gradle (wrapper) or Maven (pom.xml)
           if [ -f "./gradlew" ] || [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
             echo "Detected Gradle project."
+            BUILD_TOOL="gradle"
 
             # (optional) cache Gradle (you can add actions/cache for speed if desired)
             echo "##[group]Gradle build started"
@@ -50,19 +51,22 @@ jobs:
               gradle test
             fi
 
-            echo "build_tool=gradle" >> $GITHUB_OUTPUT
-
           elif [ -f "pom.xml" ]; then
             echo "Detected Maven project."
+            BUILD_TOOL="maven"
 
             # run maven build
             mvn -v
             mvn -B -DskipTests=false clean verify
 
-            echo "build_tool=maven" >> $GITHUB_OUTPUT
           else
             echo "No Maven or Gradle files found. Exiting with error."
             exit 2
+          fi
+
+          # Set output after build completes (or fails)
+          if [ -n "${BUILD_TOOL:-}" ]; then
+            echo "build_tool=${BUILD_TOOL}" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Upload test results (if present)
