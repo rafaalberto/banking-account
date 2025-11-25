@@ -1,140 +1,43 @@
-# Coding Challenge: Providing a RESTful API Java for Banking Account Management.
+# Banking Account API — Refactored in 2025
 
-The reason for this app is providing a solution without heavy frameworks <br/>
-The App works by saving, listing, deleting Banking Accounts and transferring money among them. <br/>
-The main technologies are: <br/>
+This project was originally developed in **2019** as part of a coding challenge for **Revolut**.  
+In **2025**, the application is undergoing a **complete refactor** to improve concurrency safety, transactional integrity, architecture, and test coverage.
 
-- Java 11
-- Undertow (Embedded Server)
-- REST concepts
-- H2 Database
-- Unit Tests
-- REST Assured (API Unit Test)
+This repository demonstrates:
+- A lightweight REST API in Java with no heavy frameworks
+- Correct handling of financial transactions *(WIP)*
+- Safe and consistent concurrent operations *(WIP)*
+- Clean architecture and SOLID principles *(WIP)*
+- Comprehensive unit, integration, and concurrency testing *(WIP)*
 
-# API Services
+---
 
-# Create Account
+## 🚀 Technologies
 
-POST: http://localhost:8080/accounts
+- **Java 21** (updated in Nov/2025)
+- **Undertow** (embedded HTTP server)
+- **JDBC + H2 Database**
+- **REST Assured** (API testing)
+- **JUnit 5**
+- **Gradle**
 
-Request:
-{
-	"name": "Rafael"
-}
+---
 
-Response:
-{
-    "id": 1,
-    "name": "Rafael",
-    "balance": 0.00
-}
+## 🔄 Refactor 2025 — Improvements
 
-# Update Account
+### 🔴 Issues in the original 2019 version
+- Race conditions during deposits, withdrawals, and transfers
+- Ineffective locking using `synchronized(this)`
+- A single shared Connection instance (not thread-safe)
+- Missing `rollback()` in multi-step database operations
+- Violations of **DIP** (Dependency Inversion Principle)
+- DAO mixing unrelated responsibilities
+- No concurrency tests or integration tests
 
-PUT: http://localhost:8080/accounts/1
+### 🟢 Fixes Implemented in 2025 *(WIP)*
+- Architecture cleanup and separation of responsibilities
+- Migration to Java 21 & Gradle
+- Codebase restructuring and preparation for dependency injection
+- Improved project organization and documentation
 
-Request:
-{
-	"name": "John"
-}
-
-Response:
-{
-    "id": 1,
-    "name": "John",
-    "balance": 0.00
-}
-
-# Delete Account
-
-DELETE: http://localhost:8080/accounts/1
-
-Response: 204 - No Content
-
-# Find Account By Id
-
-GET: http://localhost:8080/accounts/1
-
-Response:
-{
-    "id": 1,
-    "name": "Rafael",
-    "balance": 0.00
-}
-
-# Find All Accounts
-
-GET: http://localhost:8080/accounts
-
-Response:
-[
-    {
-        "id": 1,
-        "name": "Rafael",
-        "balance": 1000.00
-    },
-    {
-        "id": 2,
-        "name": "Mary",
-        "balance": 2000.30
-    },
-    {
-        "id": 3,
-        "name": "Pedro",
-        "balance": 800.00
-    }
-]
-
-# Banking Transaction - Deposit
-
-POST: http://localhost:8080/transactions
-
-Request: 
-{
-	"accountSenderId": 1,
-	"accountReceiverId": 1,
-	"amount": 5000,
-	"type": "DEPOSIT"
-}
-
-Response:
-{
-    "success": true,
-    "description": "Deposit executed successfully"
-}
-
-# Banking Transaction - Withdraw
-
-POST: http://localhost:8080/transactions
-
-Request: 
-{
-	"accountSenderId": 1,
-	"accountReceiverId": 1,
-	"amount": 100,
-	"type": "WITHDRAW"
-}
-
-Response:
-{
-    "success": true,
-    "description": "Withdraw executed successfully"
-}
-
-# Banking Transaction - Transfer
-
-POST: http://localhost:8080/transactions
-
-Request: 
-{
-	"accountSenderId": 1,
-	"accountReceiverId": 2,
-	"amount": 500,
-	"type": "TRANSFER"
-}
-
-Response:
-{
-    "success": true,
-    "description": "Transfer executed successfully"
-}
+Additional improvements (including concurrency fixes, atomic DB operations, and DataSource-based connections) are currently in progress.
