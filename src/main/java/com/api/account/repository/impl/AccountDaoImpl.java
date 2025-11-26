@@ -27,7 +27,7 @@ public class AccountDaoImpl implements AccountDao {
 
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to find", e);
         }
     }
 
@@ -42,7 +42,7 @@ public class AccountDaoImpl implements AccountDao {
             }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to update account", e);
         }
     }
 
@@ -54,7 +54,7 @@ public class AccountDaoImpl implements AccountDao {
                 preparedStatement.execute();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to delete", e);
         }
     }
 
@@ -66,7 +66,7 @@ public class AccountDaoImpl implements AccountDao {
                 preparedStatement.execute();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to delete", e);
         }
     }
 
@@ -84,11 +84,10 @@ public class AccountDaoImpl implements AccountDao {
                     account.setBalance(resultSet.getBigDecimal("balance"));
                     accounts.add(account);
                 }
-                resultSet.close();
             }
             return accounts;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to select", e);
         }
     }
 
@@ -106,11 +105,10 @@ public class AccountDaoImpl implements AccountDao {
                     account.setName(resultSet.getString("name"));
                     account.setBalance(resultSet.getBigDecimal("balance"));
                 }
-                resultSet.close();
             }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to find", e);
         }
     }
 
@@ -127,7 +125,7 @@ public class AccountDaoImpl implements AccountDao {
             }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to update", e);
         }
     }
 

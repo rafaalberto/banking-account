@@ -18,28 +18,15 @@ public class DatabaseConnection {
     private static final String CREATE_TABLE_ACCOUNTS = "CREATE TABLE IF NOT EXISTS accounts " +
             "(id bigint auto_increment NOT NULL, name VARCHAR(255) NOT NULL, balance DECIMAL(10,2) NOT NULL, PRIMARY KEY( id ))";
 
-    public static void connect() {
-        try (Connection connection = getConnection()) {
-            LOGGER.info("Database connected");
+    public static void startup() {
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(DROP_TABLE_ACCOUNTS);
+            statement.executeUpdate(CREATE_TABLE_ACCOUNTS);
         } catch (SQLException e) {
             LOGGER.error("Failed to connect to database", e);
             throw new RuntimeException("Database connection failed", e);
         }
-        createTables();
     }
 
-    public static void createTables() {
-        try (Connection connection = getConnection();
-             Statement statement = connection.createStatement()) {
-            
-            statement.executeUpdate(DROP_TABLE_ACCOUNTS);
-            statement.executeUpdate(CREATE_TABLE_ACCOUNTS);
-
-            LOGGER.info("Tables created");
-
-        } catch (SQLException e) {
-            LOGGER.error("Failed to create tables", e);
-            throw new RuntimeException("Failed to create database tables", e);
-        }
-    }
 }

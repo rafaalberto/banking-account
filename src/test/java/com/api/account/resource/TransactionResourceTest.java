@@ -31,7 +31,7 @@ public class TransactionResourceTest {
 
     @BeforeEach
     public void setUp() {
-        DatabaseConnection.createTables();
+        DatabaseConnection.startup();
         
         Undertow.Builder builder = Undertow.builder();
         builder.addHttpListener(TEST_PORT, APP_HOST);

@@ -1,6 +1,7 @@
 package com.api.account;
 
 import com.api.account.config.RoutesApplication;
+import com.api.account.database.ConnectionFactory;
 import com.api.account.database.DatabaseConnection;
 import io.undertow.Undertow;
 import org.slf4j.Logger;
@@ -23,7 +24,12 @@ public class BankingAccountApplication {
 
         LOGGER.info("Application started at " + APP_PORT);
 
-        DatabaseConnection.connect();
+        DatabaseConnection.startup();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            ConnectionFactory.shutdown();
+            LOGGER.info("Connection pool closed");
+        }));
     }
 
 }
