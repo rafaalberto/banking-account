@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static com.api.account.database.ConnectionFactory.getConnection;
+
 public class DatabaseConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseConnection.class);
@@ -17,43 +19,27 @@ public class DatabaseConnection {
             "(id bigint auto_increment NOT NULL, name VARCHAR(255) NOT NULL, balance DECIMAL(10,2) NOT NULL, PRIMARY KEY( id ))";
 
     public static void connect() {
-        try {
-            Connection connection = ConnectionFactory.getConnection();
+        try (Connection connection = getConnection()) {
             LOGGER.info("Database connected");
-            connection.close();
-            LOGGER.info("Connection closed");
-            createTables();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("Failed to connect to database", e);
+            throw new RuntimeException("Database connection failed", e);
         }
+        createTables();
     }
 
     public static void createTables() {
-        Connection connection = null;
-        Statement statement = null;
-        try {
-            connection = ConnectionFactory.getConnection();
-            statement = connection.createStatement();
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            
             statement.executeUpdate(DROP_TABLE_ACCOUNTS);
             statement.executeUpdate(CREATE_TABLE_ACCOUNTS);
 
             LOGGER.info("Tables created");
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            LOGGER.error(e.getMessage());
-        } finally {
-            try {
-                if (statement != null) {
-                    statement.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error(e.getMessage());
-            }
+            LOGGER.error("Failed to create tables", e);
+            throw new RuntimeException("Failed to create database tables", e);
         }
     }
 }

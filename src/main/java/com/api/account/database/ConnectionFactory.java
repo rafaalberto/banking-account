@@ -6,15 +6,11 @@ import java.sql.SQLException;
 
 public class ConnectionFactory {
 
-    public static Connection getConnection() {
-        try {
-            String databaseUrl = "jdbc:h2:~/test";
-            String databaseUser = "sa";
-            String databasePassword = "";
+    private static final String DATABASE_URL = "jdbc:h2:~/test";
+    private static final String DATABASE_USER = "sa";
+    private static final String DATABASE_PASSWORD = "";
 
-            return DriverManager.getConnection(databaseUrl, databaseUser, databasePassword);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Error connecting to database: ", ex);
-        }
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
     }
 }
