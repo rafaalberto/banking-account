@@ -3,13 +3,12 @@ package com.api.account.service.impl;
 import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
-import com.api.account.repository.impl.AccountDaoImpl;
 import com.api.account.service.AccountService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,20 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class AccountServiceImplTest {
 
     private Account account;
 
-    private AccountService accountService;
-
     @Mock
-    private AccountDao accountDao = new AccountDaoImpl();
+    private AccountDao accountDao;
+
+    private AccountService accountService;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        accountService = new AccountServiceImpl(accountDao);
         account = new Account(1L, "Rafael");
+        accountService = new AccountServiceImpl(accountDao);
     }
 
     @Test
@@ -50,7 +51,6 @@ public class AccountServiceImplTest {
     @Test
     public void shouldDenyCreateAccountIfNameNotInformed() {
         Account accountToCreate = new Account( " ");
-        when(accountDao.insert(accountToCreate)).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
                 accountService.save(accountToCreate)).withMessage("Name must be informed");
@@ -60,7 +60,6 @@ public class AccountServiceImplTest {
     public void shouldDenyCreateAccountIfBalanceGreaterThanZero() {
         Account accountToCreate = new Account( "Rafael");
         accountToCreate.setBalance(convertTwoDecimalPlace(new BigDecimal(3000)));
-        when(accountDao.insert(accountToCreate)).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
                 accountService.save(accountToCreate)).withMessage("Balance is not allowed to be saved for this operation");
@@ -106,8 +105,6 @@ public class AccountServiceImplTest {
     @Test
     public void shouldDenyUpdateAccountIfNameNotInformed() {
         Account accountToUpdate = new Account(1L, "  ");
-        when(accountDao.findById(1L)).thenReturn(account);
-        when(accountDao.update(accountToUpdate)).thenReturn(accountToUpdate);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
                 accountService.save(accountToUpdate)).withMessage("Name must be informed");

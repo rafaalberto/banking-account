@@ -13,14 +13,20 @@ import static com.api.account.utils.JsonConverter.readFromJson;
 
 public class TransactionResource {
 
-    public static void execute(HttpServerExchange exchange) {
+    private final TransactionFactory transactionFactory;
+
+    public TransactionResource(TransactionFactory transactionFactory) {
+        this.transactionFactory = transactionFactory;
+    }
+
+    public void execute(HttpServerExchange exchange) {
         handleStatusAndHeaders(exchange, HTTP_CREATED_STATUS);
         exchange.getRequestReceiver().receiveFullString((serverExchange, message) -> {
             try {
                 Transaction transaction = readFromJson(message, new TypeReference<>() {});
                 if (transaction != null) {
                     var transactionType = transaction.getType();
-                    TransactionFactory.getService(transactionType).execute(transaction);
+                    transactionFactory.getService(transactionType).execute(transaction);
                     Message messageToSend = new Message(true, transactionType.getDescription() + " executed successfully");
                     exchange.getResponseSender().send(convertToJson(messageToSend));
                 }

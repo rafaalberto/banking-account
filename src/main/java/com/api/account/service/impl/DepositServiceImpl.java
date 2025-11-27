@@ -13,10 +13,10 @@ import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 
 public class DepositServiceImpl implements TransactionService {
 
-    private AccountService accountService;
+    private final AccountService accountService;
 
-    public DepositServiceImpl() {
-        accountService = new AccountServiceImpl();
+    public DepositServiceImpl(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @Override
@@ -25,10 +25,9 @@ public class DepositServiceImpl implements TransactionService {
 
         verifyData(transaction);
 
-        synchronized (this) {
-            account.setBalance(deposit(account.getBalance(), transaction.getAmount()));
-            accountService.updateBalance(account);
-        }
+        account.setBalance(deposit(account.getBalance(), transaction.getAmount()));
+        accountService.updateBalance(account);
+
     }
 
     private void verifyData(Transaction transaction) {

@@ -12,24 +12,24 @@ import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 
 public final class TransactionFactory {
 
-    private TransactionFactory() {
+    private final AccountService accountService;
+    private final Map<TransactionType, TransactionService> services;
+
+    public TransactionFactory(AccountService accountService) {
+        this.accountService = accountService;
+        this.services = createServices();
     }
 
-    private static final Map<TransactionType, TransactionService> SERVICES = Map.of(
-            TransactionType.DEPOSIT, new DepositServiceImpl(),
-            TransactionType.WITHDRAW, new WithdrawServiceImpl(),
-            TransactionType.TRANSFER, new TransferServiceImpl()
-    );
+    private Map<TransactionType, TransactionService> createServices() {
+        return Map.of(
+                TransactionType.DEPOSIT, new DepositServiceImpl(accountService),
+                TransactionType.WITHDRAW, new WithdrawServiceImpl(accountService),
+                TransactionType.TRANSFER, new TransferServiceImpl(accountService)
+        );
+    }
 
-    public static TransactionService getService(TransactionType transactionType) {
-        var service = SERVICES.get(transactionType);
-        if (service == null) {
-            throw new BusinessException(
-                    HTTP_BAD_REQUEST_STATUS,
-                    "Unsupported transaction type: " + transactionType
-            );
-        }
-        return service;
+    public TransactionService getService(TransactionType transactionType) {
+        return services.get(transactionType);
     }
 
 }

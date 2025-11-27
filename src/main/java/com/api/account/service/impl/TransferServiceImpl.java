@@ -15,10 +15,10 @@ import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 
 public class TransferServiceImpl implements TransactionService {
 
-    private AccountService accountService;
+    private final AccountService accountService;
 
-    public TransferServiceImpl() {
-        accountService = new AccountServiceImpl();
+    public TransferServiceImpl(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @Override
@@ -28,11 +28,9 @@ public class TransferServiceImpl implements TransactionService {
 
         verifyData(transaction);
 
-        synchronized (this) {
-            accountSender.setBalance(withdraw(accountSender.getBalance(), transaction.getAmount()));
-            accountReceiver.setBalance(deposit(accountReceiver.getBalance(), transaction.getAmount()));
-            accountService.updateBalanceByTransaction(accountSender, accountReceiver);
-        }
+        accountSender.setBalance(withdraw(accountSender.getBalance(), transaction.getAmount()));
+        accountReceiver.setBalance(deposit(accountReceiver.getBalance(), transaction.getAmount()));
+        accountService.updateBalanceByTransaction(accountSender, accountReceiver);
     }
 
     private void verifyData(Transaction transaction) {

@@ -5,13 +5,13 @@ import com.api.account.model.Account;
 import com.api.account.model.Transaction;
 import com.api.account.service.AccountService;
 import com.api.account.service.TransactionService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
@@ -19,26 +19,26 @@ import static com.api.account.enumeration.TransactionType.*;
 import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@ExtendWith(MockitoExtension.class)
 public class TransactionServiceImplTest {
 
     private Account account;
 
-    @InjectMocks
-    private TransactionService depositService = new DepositServiceImpl();
-
-    @InjectMocks
-    private TransactionService withdrawService = new WithdrawServiceImpl();
-
-    @InjectMocks
-    private TransactionService transferService = new TransferServiceImpl();
-
     @Mock
-    private AccountService accountService = new AccountServiceImpl();
+    private AccountService accountService;
+
+    private TransactionService depositService;
+
+    private TransactionService withdrawService;
+
+    private TransactionService transferService;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         account = new Account(1L, "Rafael");
+        depositService = new DepositServiceImpl(accountService);
+        withdrawService = new WithdrawServiceImpl(accountService);
+        transferService = new TransferServiceImpl(accountService);
     }
 
     @Test
@@ -60,7 +60,6 @@ public class TransactionServiceImplTest {
     @Test
     public void shouldDenyDepositWithAmountZero() {
         Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(BigDecimal.ZERO), DEPOSIT);
-        Mockito.when(accountService.findById(transaction.getAccountSenderId())).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
                 depositService.execute(transaction)).withMessage("Amount must be greater than zero");
@@ -78,7 +77,6 @@ public class TransactionServiceImplTest {
     public void shouldDenyWithdrawWithDifferentAccounts() {
         Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
         account.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findById(transaction.getAccountSenderId())).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
                 withdrawService.execute(transaction)).withMessage("Account Sender and Receiver must be the same");
@@ -88,7 +86,6 @@ public class TransactionServiceImplTest {
     public void shouldDenyWithdrawWithAmountZero() {
         Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(BigDecimal.ZERO), WITHDRAW);
         account.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findById(transaction.getAccountSenderId())).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
                 withdrawService.execute(transaction)).withMessage("Amount must be greater than zero");

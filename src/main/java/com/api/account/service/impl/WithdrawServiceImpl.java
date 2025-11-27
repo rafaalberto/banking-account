@@ -13,10 +13,10 @@ import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 
 public class WithdrawServiceImpl implements TransactionService {
 
-    private AccountService accountService;
+    private final AccountService accountService;
 
-    public WithdrawServiceImpl() {
-        accountService = new AccountServiceImpl();
+    public WithdrawServiceImpl(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @Override
