@@ -27,7 +27,7 @@ public class AccountDaoImpl implements AccountDao {
 
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException("Error to find", e);
+            throw new RuntimeException("Error to insert", e);
         }
     }
 
@@ -42,7 +42,7 @@ public class AccountDaoImpl implements AccountDao {
             }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException("Error to update account", e);
+            throw new RuntimeException("Error to update", e);
         }
     }
 
