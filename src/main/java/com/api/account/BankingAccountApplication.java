@@ -15,6 +15,9 @@ public class BankingAccountApplication {
     private static final Logger LOGGER = LoggerFactory.getLogger(BankingAccountApplication.class);
 
     public static void main(String[] args) {
+        DatabaseConnection.startup();
+        LOGGER.info("Database started");
+
         Undertow.Builder builder = Undertow.builder();
         builder.addHttpListener(APP_PORT, APP_HOST);
         builder.setHandler(RoutesApplication.ROUTES);
@@ -23,8 +26,6 @@ public class BankingAccountApplication {
         server.start();
 
         LOGGER.info("Application started at " + APP_PORT);
-
-        DatabaseConnection.startup();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             ConnectionFactory.shutdown();
