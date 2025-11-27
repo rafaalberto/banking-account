@@ -21,7 +21,7 @@ public class AccountDaoImplTest {
 
     @BeforeEach
     public void setUp () {
-        DatabaseConnection.createTables();
+        DatabaseConnection.startup();
         accountDao = new AccountDaoImpl();
     }
 

@@ -11,64 +11,62 @@ import java.util.List;
 
 public class AccountDaoImpl implements AccountDao {
 
-    private Connection connection;
-
-    public AccountDaoImpl() {
-        this.connection = ConnectionFactory.getConnection();
-    }
-
     public Account insert(Account account) {
         String sql = "insert into accounts (name, balance) values (?, ?)";
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, account.getName());
-            preparedStatement.setBigDecimal(2, account.getBalance());
+            try (Connection connection = ConnectionFactory.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                preparedStatement.setString(1, account.getName());
+                preparedStatement.setBigDecimal(2, account.getBalance());
 
-            var rowsAffected = preparedStatement.executeUpdate();
+                var rowsAffected = preparedStatement.executeUpdate();
 
-            account.setId(getGeneratedId(preparedStatement, rowsAffected));
+                account.setId(getGeneratedId(preparedStatement, rowsAffected));
 
-            preparedStatement.close();
+            }
 
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to find", e);
         }
     }
 
     public Account update(Account account) {
         String sql = "update accounts set name = ? where id = ?";
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, account.getName());
-            preparedStatement.setLong(2, account.getId());
-            preparedStatement.execute();
-            preparedStatement.close();
+            try (Connection connection = ConnectionFactory.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setString(1, account.getName());
+                preparedStatement.setLong(2, account.getId());
+                preparedStatement.execute();
+            }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to update account", e);
         }
     }
 
     public void delete(Long id) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("delete from accounts where id = ?");
-            preparedStatement.setLong(1, id);
-            preparedStatement.execute();
-            preparedStatement.close();
+            try (Connection connection = ConnectionFactory.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement("delete from accounts where id = ?")) {
+                preparedStatement.setLong(1, id);
+                preparedStatement.execute();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to delete", e);
         }
     }
 
     /* Created in order to use in unit test */
     public void deleteAll() {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("delete from accounts");
-            preparedStatement.execute();
-            preparedStatement.close();
+            try (Connection connection = ConnectionFactory.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement("delete from accounts")) {
+                preparedStatement.execute();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to delete", e);
         }
     }
 
@@ -76,20 +74,20 @@ public class AccountDaoImpl implements AccountDao {
         String sql = "select * from accounts";
         try {
             List<Account> accounts = new ArrayList<>();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                Account account = new Account();
-                account.setId(resultSet.getLong("id"));
-                account.setName(resultSet.getString("name"));
-                account.setBalance(resultSet.getBigDecimal("balance"));
-                accounts.add(account);
+            try (Connection connection = ConnectionFactory.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    Account account = new Account();
+                    account.setId(resultSet.getLong("id"));
+                    account.setName(resultSet.getString("name"));
+                    account.setBalance(resultSet.getBigDecimal("balance"));
+                    accounts.add(account);
+                }
             }
-            resultSet.close();
-            preparedStatement.close();
             return accounts;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to select", e);
         }
     }
 
@@ -97,20 +95,20 @@ public class AccountDaoImpl implements AccountDao {
         String sql = "select * from accounts where id = ?";
         try {
             Account account = null;
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setLong(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                account = new Account();
-                account.setId(resultSet.getLong("id"));
-                account.setName(resultSet.getString("name"));
-                account.setBalance(resultSet.getBigDecimal("balance"));
+            try (Connection connection = ConnectionFactory.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setLong(1, id);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    account = new Account();
+                    account.setId(resultSet.getLong("id"));
+                    account.setName(resultSet.getString("name"));
+                    account.setBalance(resultSet.getBigDecimal("balance"));
+                }
             }
-            resultSet.close();
-            preparedStatement.close();
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to find", e);
         }
     }
 
@@ -119,46 +117,53 @@ public class AccountDaoImpl implements AccountDao {
     public Account updateBalance(Account account) {
         String sql = "update accounts set balance = ? where id = ?";
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setBigDecimal(1, account.getBalance());
-            preparedStatement.setLong(2, account.getId());
-            preparedStatement.execute();
-            preparedStatement.close();
+            try (Connection connection = ConnectionFactory.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setBigDecimal(1, account.getBalance());
+                preparedStatement.setLong(2, account.getId());
+                preparedStatement.execute();
+            }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error to update", e);
         }
     }
 
     /* used in transfer operations in order to treat database transactions */
     @Override
     public void updateBalanceByTransfer(Account accountSender, Account accountReceiver) {
-        try {
+        try (Connection connection = ConnectionFactory.getConnection()) {
             connection.setAutoCommit(false);
 
-            String sql = "update accounts set balance = ? where id = ?";
+            try {
+                String sql = "update accounts set balance = ? where id = ?";
 
-            PreparedStatement preparedStatementSender = connection.prepareStatement(sql);
-            preparedStatementSender.setBigDecimal(1, accountSender.getBalance());
-            preparedStatementSender.setLong(2, accountSender.getId());
-            preparedStatementSender.execute();
-            preparedStatementSender.close();
+                try (PreparedStatement preparedStatementSender = connection.prepareStatement(sql)) {
+                    preparedStatementSender.setBigDecimal(1, accountSender.getBalance());
+                    preparedStatementSender.setLong(2, accountSender.getId());
+                    preparedStatementSender.execute();
+                }
 
-            PreparedStatement preparedStatementReceiver = connection.prepareStatement(sql);
-            preparedStatementReceiver.setBigDecimal(1, accountReceiver.getBalance());
-            preparedStatementReceiver.setLong(2, accountReceiver.getId());
-            preparedStatementReceiver.execute();
-            preparedStatementReceiver.close();
+                try (PreparedStatement preparedStatementReceiver = connection.prepareStatement(sql)) {
+                    preparedStatementReceiver.setBigDecimal(1, accountReceiver.getBalance());
+                    preparedStatementReceiver.setLong(2, accountReceiver.getId());
+                    preparedStatementReceiver.execute();
+                }
 
-            connection.commit();
-            connection.setAutoCommit(true);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw new RuntimeException("Transaction failed and was rolled back", e);
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to establish database connection", e);
         }
     }
 
     private Long getGeneratedId(PreparedStatement preparedStatement, int rowsAffected) throws SQLException {
-        if(rowsAffected > BigInteger.ZERO.intValue()){
+        if (rowsAffected > BigInteger.ZERO.intValue()) {
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getLong(1);
