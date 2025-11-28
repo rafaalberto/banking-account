@@ -4,12 +4,16 @@ import com.api.account.config.RoutesApplication;
 import com.api.account.database.ConnectionFactory;
 import com.api.account.database.DatabaseConnection;
 import com.api.account.repository.AccountDao;
+import com.api.account.repository.BalanceDao;
 import com.api.account.repository.impl.AccountDaoImpl;
+import com.api.account.repository.impl.BalanceDaoImpl;
 import com.api.account.resource.AccountResource;
 import com.api.account.resource.TransactionResource;
 import com.api.account.service.AccountService;
+import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionFactory;
 import com.api.account.service.impl.AccountServiceImpl;
+import com.api.account.service.impl.BalanceServiceImpl;
 import io.undertow.Undertow;
 import io.undertow.server.RoutingHandler;
 import org.slf4j.Logger;
@@ -27,8 +31,10 @@ public class BankingAccountApplication {
         LOGGER.info("Database started");
 
         AccountDao accountDao = new AccountDaoImpl();
+        BalanceDao balanceDao = new BalanceDaoImpl();
         AccountService accountService = new AccountServiceImpl(accountDao);
-        TransactionFactory transactionFactory = new TransactionFactory(accountService);
+        BalanceService balanceService = new BalanceServiceImpl(balanceDao);
+        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService);
 
         AccountResource accountResource = new AccountResource(accountService);
         TransactionResource transactionResource = new TransactionResource(transactionFactory);

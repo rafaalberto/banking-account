@@ -13,18 +13,20 @@ import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 public final class TransactionFactory {
 
     private final AccountService accountService;
+    private final BalanceService balanceService;
     private final Map<TransactionType, TransactionService> services;
 
-    public TransactionFactory(AccountService accountService) {
+    public TransactionFactory(AccountService accountService, BalanceService balanceService) {
         this.accountService = accountService;
+        this.balanceService = balanceService;
         this.services = createServices();
     }
 
     private Map<TransactionType, TransactionService> createServices() {
         return Map.of(
-                TransactionType.DEPOSIT, new DepositServiceImpl(accountService),
-                TransactionType.WITHDRAW, new WithdrawServiceImpl(accountService),
-                TransactionType.TRANSFER, new TransferServiceImpl(accountService)
+                TransactionType.DEPOSIT, new DepositServiceImpl(accountService, balanceService),
+                TransactionType.WITHDRAW, new WithdrawServiceImpl(accountService, balanceService),
+                TransactionType.TRANSFER, new TransferServiceImpl(accountService, balanceService)
         );
     }
 

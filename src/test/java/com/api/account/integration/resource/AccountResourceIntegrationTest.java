@@ -5,12 +5,16 @@ import com.api.account.database.DatabaseConnection;
 import com.api.account.model.Account;
 import com.api.account.model.Message;
 import com.api.account.repository.AccountDao;
+import com.api.account.repository.BalanceDao;
 import com.api.account.repository.impl.AccountDaoImpl;
+import com.api.account.repository.impl.BalanceDaoImpl;
 import com.api.account.resource.AccountResource;
 import com.api.account.resource.TransactionResource;
 import com.api.account.service.AccountService;
+import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionFactory;
 import com.api.account.service.impl.AccountServiceImpl;
+import com.api.account.service.impl.BalanceServiceImpl;
 import com.api.account.utils.NumericConverter;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -32,14 +36,18 @@ public class AccountResourceIntegrationTest {
 
     private AccountDao accountDao;
 
+    private BalanceDao balanceDao;
+
     @BeforeEach
     public void setUp() {
         DatabaseConnection.startup();
 
         this.accountDao = new AccountDaoImpl();
+        this.balanceDao = new BalanceDaoImpl();
         AccountService accountService = new AccountServiceImpl(accountDao);
+        BalanceService balanceService = new BalanceServiceImpl(balanceDao);
         AccountResource accountResource = new AccountResource(accountService);
-        TransactionFactory transactionFactory = new TransactionFactory(accountService);
+        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService);
         TransactionResource transactionResource = new TransactionResource(transactionFactory);
 
         Undertow.Builder builder = Undertow.builder();

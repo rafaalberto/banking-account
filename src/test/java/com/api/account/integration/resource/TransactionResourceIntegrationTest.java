@@ -6,12 +6,16 @@ import com.api.account.model.Account;
 import com.api.account.model.Message;
 import com.api.account.model.Transaction;
 import com.api.account.repository.AccountDao;
+import com.api.account.repository.BalanceDao;
 import com.api.account.repository.impl.AccountDaoImpl;
+import com.api.account.repository.impl.BalanceDaoImpl;
 import com.api.account.resource.AccountResource;
 import com.api.account.resource.TransactionResource;
 import com.api.account.service.AccountService;
+import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionFactory;
 import com.api.account.service.impl.AccountServiceImpl;
+import com.api.account.service.impl.BalanceServiceImpl;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.undertow.Undertow;
@@ -31,6 +35,7 @@ public class TransactionResourceIntegrationTest {
     private static final String RESOURCE_PATH = "/transactions";
 
     private AccountDao accountDao = new AccountDaoImpl();
+    private BalanceDao balanceDao = new BalanceDaoImpl();
 
     private Undertow server;
 
@@ -39,9 +44,11 @@ public class TransactionResourceIntegrationTest {
         DatabaseConnection.startup();
 
         this.accountDao = new AccountDaoImpl();
+        this.balanceDao = new BalanceDaoImpl();
         AccountService accountService = new AccountServiceImpl(accountDao);
+        BalanceService balanceService = new BalanceServiceImpl(balanceDao);
         AccountResource accountResource = new AccountResource(accountService);
-        TransactionFactory transactionFactory = new TransactionFactory(accountService);
+        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService);
         TransactionResource transactionResource = new TransactionResource(transactionFactory);
 
         Undertow.Builder builder = Undertow.builder();
@@ -171,7 +178,7 @@ public class TransactionResourceIntegrationTest {
     }
 
     private void updateBalance(Account account) {
-        accountDao.updateBalance(account);
+        balanceDao.updateBalance(account);
     }
 
     private void deleteAccount(Long accountId) {

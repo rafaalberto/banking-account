@@ -18,8 +18,4 @@ public interface AccountDao {
 
     Account findById(Long id);
 
-    Account updateBalance(Account account);
-
-    void updateBalanceByTransfer(Account accountSender, Account accountReceiver);
-
 }

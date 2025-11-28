@@ -112,56 +112,6 @@ public class AccountDaoImpl implements AccountDao {
         }
     }
 
-    /* used in deposit and withdraw transactions */
-    @Override
-    public Account updateBalance(Account account) {
-        String sql = "update accounts set balance = ? where id = ?";
-        try {
-            try (Connection connection = ConnectionFactory.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setBigDecimal(1, account.getBalance());
-                preparedStatement.setLong(2, account.getId());
-                preparedStatement.execute();
-            }
-            return account;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error to update", e);
-        }
-    }
-
-    /* used in transfer operations in order to treat database transactions */
-    @Override
-    public void updateBalanceByTransfer(Account accountSender, Account accountReceiver) {
-        try (Connection connection = ConnectionFactory.getConnection()) {
-            connection.setAutoCommit(false);
-
-            try {
-                String sql = "update accounts set balance = ? where id = ?";
-
-                try (PreparedStatement preparedStatementSender = connection.prepareStatement(sql)) {
-                    preparedStatementSender.setBigDecimal(1, accountSender.getBalance());
-                    preparedStatementSender.setLong(2, accountSender.getId());
-                    preparedStatementSender.execute();
-                }
-
-                try (PreparedStatement preparedStatementReceiver = connection.prepareStatement(sql)) {
-                    preparedStatementReceiver.setBigDecimal(1, accountReceiver.getBalance());
-                    preparedStatementReceiver.setLong(2, accountReceiver.getId());
-                    preparedStatementReceiver.execute();
-                }
-
-                connection.commit();
-            } catch (SQLException e) {
-                connection.rollback();
-                throw new RuntimeException("Transaction failed and was rolled back", e);
-            } finally {
-                connection.setAutoCommit(true);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to establish database connection", e);
-        }
-    }
-
     private Long getGeneratedId(PreparedStatement preparedStatement, int rowsAffected) throws SQLException {
         if (rowsAffected > BigInteger.ZERO.intValue()) {
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
