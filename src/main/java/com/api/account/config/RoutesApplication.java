@@ -9,14 +9,18 @@ import static io.undertow.util.Methods.*;
 
 public abstract class RoutesApplication {
 
-    public static final RoutingHandler ROUTES = new RoutingHandler()
-            .add(GET, "/", RoutesApplication::index)
-            .add(GET, "/accounts", AccountResource::findAll)
-            .add(GET, "/accounts/{id}", AccountResource::findById)
-            .add(POST, "/accounts", AccountResource::create)
-            .add(PUT, "/accounts/{id}", AccountResource::update)
-            .add(DELETE, "/accounts/{id}", AccountResource::delete)
-            .add(POST, "/transactions", TransactionResource::execute);
+    public static RoutingHandler createRoutes(AccountResource accountResource,
+                                              TransactionResource transactionResource) {
+
+        return new RoutingHandler()
+                .add(GET, "/", RoutesApplication::index)
+                .add(GET, "/accounts", accountResource::findAll)
+                .add(GET, "/accounts/{id}", accountResource::findById)
+                .add(POST, "/accounts", accountResource::create)
+                .add(PUT, "/accounts/{id}", accountResource::update)
+                .add(DELETE, "/accounts/{id}", accountResource::delete)
+                .add(POST, "/transactions", transactionResource::execute);
+    }
 
     private static void index(HttpServerExchange exchange) {
         exchange.getResponseSender().send("Application Started");

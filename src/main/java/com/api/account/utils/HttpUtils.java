@@ -30,7 +30,17 @@ public abstract class HttpUtils {
     private static final String HEADER_JSON = "application/json";
 
     public static String getQueryParameter(HttpServerExchange exchange) {
-        return exchange.getQueryParameters().get("id").getFirst();
+        // Extract path parameter from Undertow RoutingHandler
+        var pathParameters = exchange.getPathParameters();
+        if (pathParameters != null && pathParameters.containsKey("id")) {
+            return pathParameters.get("id").getFirst();
+        }
+        // Fallback to query parameter if path parameter not found
+        var queryParameters = exchange.getQueryParameters();
+        if (queryParameters != null && queryParameters.containsKey("id")) {
+            return queryParameters.get("id").getFirst();
+        }
+        throw new IllegalArgumentException("Parameter 'id' not found in path or query parameters");
     }
 
     public static void handleStatusAndHeaders(HttpServerExchange exchange, int httpCreatedStatus) {

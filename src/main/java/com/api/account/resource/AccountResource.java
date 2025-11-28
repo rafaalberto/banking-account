@@ -3,7 +3,6 @@ package com.api.account.resource;
 import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
 import com.api.account.service.AccountService;
-import com.api.account.service.impl.AccountServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.undertow.server.HttpServerExchange;
 
@@ -15,13 +14,18 @@ import static com.api.account.utils.JsonConverter.readFromJson;
 
 public class AccountResource {
 
-    private static final AccountService accountService = new AccountServiceImpl();
+    private final AccountService accountService;
 
-    public static void create(HttpServerExchange exchange) {
+    public AccountResource(AccountService accountService) {
+        this.accountService = accountService;
+    }
+
+    public void create(HttpServerExchange exchange) {
         handleStatusAndHeaders(exchange, HTTP_CREATED_STATUS);
         exchange.getRequestReceiver().receiveFullString((serverExchange, message) -> {
             try {
-                Account account = readFromJson(message, new TypeReference<>() {});
+                Account account = readFromJson(message, new TypeReference<>() {
+                });
                 if (account != null) {
                     account = accountService.save(account);
                     exchange.getResponseSender().send(convertToJson(account));
@@ -34,12 +38,13 @@ public class AccountResource {
         });
     }
 
-    public static void update(HttpServerExchange exchange) {
+    public void update(HttpServerExchange exchange) {
         handleStatusAndHeaders(exchange, HTTP_OK_STATUS);
         String id = getQueryParameter(exchange);
         exchange.getRequestReceiver().receiveFullString((serverExchange, message) -> {
             try {
-                Account account = readFromJson(message, new TypeReference<>() {});
+                Account account = readFromJson(message, new TypeReference<>() {
+                });
                 if (account != null) {
                     account.setId(Long.valueOf(id));
                     account = accountService.save(account);
@@ -53,7 +58,7 @@ public class AccountResource {
         });
     }
 
-    public static void delete(HttpServerExchange exchange) {
+    public void delete(HttpServerExchange exchange) {
         handleStatusAndHeaders(exchange, HTTP_NO_CONTENT_STATUS);
         try {
             String id = getQueryParameter(exchange);
@@ -65,19 +70,19 @@ public class AccountResource {
         }
     }
 
-    public static void findAll(HttpServerExchange exchange) {
+    public void findAll(HttpServerExchange exchange) {
         handleStatusAndHeaders(exchange, HTTP_OK_STATUS);
         try {
             List<Account> accounts = accountService.findAll();
             exchange.getResponseSender().send(convertToJson(accounts));
-        } catch(BusinessException e) {
+        } catch (BusinessException e) {
             handleApplicationException(exchange, e);
         } catch (Exception e) {
             handleApplicationException(exchange, e);
         }
     }
 
-    public static void findById(HttpServerExchange exchange) {
+    public void findById(HttpServerExchange exchange) {
         handleStatusAndHeaders(exchange, HTTP_OK_STATUS);
         try {
             String id = getQueryParameter(exchange);

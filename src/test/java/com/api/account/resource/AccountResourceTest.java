@@ -1,10 +1,14 @@
 package com.api.account.resource;
 
+import com.api.account.config.RoutesApplication;
 import com.api.account.database.DatabaseConnection;
 import com.api.account.model.Account;
 import com.api.account.model.Message;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.impl.AccountDaoImpl;
+import com.api.account.service.AccountService;
+import com.api.account.service.TransactionFactory;
+import com.api.account.service.impl.AccountServiceImpl;
 import com.api.account.utils.NumericConverter;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -15,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static com.api.account.config.RoutesApplication.ROUTES;
 import static com.api.account.utils.HttpUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,17 +26,23 @@ public class AccountResourceTest {
 
     private static final String RESOURCE_PATH = "/accounts";
 
-    private AccountDao accountDao = new AccountDaoImpl();
-
     private Undertow server;
+
+    private AccountDao accountDao;
 
     @BeforeEach
     public void setUp() {
         DatabaseConnection.startup();
-        
+
+        this.accountDao = new AccountDaoImpl();
+        AccountService accountService = new AccountServiceImpl(accountDao);
+        AccountResource accountResource = new AccountResource(accountService);
+        TransactionFactory transactionFactory = new TransactionFactory(accountService);
+        TransactionResource transactionResource = new TransactionResource(transactionFactory);
+
         Undertow.Builder builder = Undertow.builder();
         builder.addHttpListener(TEST_PORT, APP_HOST);
-        builder.setHandler(ROUTES);
+        builder.setHandler(RoutesApplication.createRoutes(accountResource, transactionResource));
         server = builder.build();
         server.start();
 

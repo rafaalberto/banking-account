@@ -1,6 +1,5 @@
 package com.api.account.service.impl;
 
-import com.api.account.repository.impl.AccountDaoImpl;
 import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
@@ -17,11 +16,7 @@ import static java.util.Optional.ofNullable;
 
 public class AccountServiceImpl implements AccountService {
 
-    private AccountDao accountDao;
-
-    public AccountServiceImpl() {
-        accountDao = new AccountDaoImpl();
-    }
+    private final AccountDao accountDao;
 
     public AccountServiceImpl(AccountDao accountDao) {
         this.accountDao = accountDao;
@@ -59,9 +54,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void delete(Long id) {
         Account account = findById(id);
-        if(account != null) {
-            accountDao.delete(account.getId());
-        }
+        accountDao.delete(account.getId());
     }
 
     @Override
