@@ -56,3 +56,22 @@ tasks.withType(Test).configureEach {
         showStandardStreams = false
     }
 }
+
+test {
+    useJUnitPlatform()
+    exclude "**/integration/**"
+    exclude "**/*IntegrationTest.java"
+}
+
+tasks.register('integrationTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    include "**/integration/**"
+    include "**/*IntegrationTest.java"
+    shouldRunAfter test
+}
+
+tasks.named('check') {
+    dependsOn('integrationTest')
+}
