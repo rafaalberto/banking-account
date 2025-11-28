@@ -11,7 +11,6 @@ import com.api.account.service.impl.WithdrawServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,7 +22,7 @@ import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @ExtendWith(MockitoExtension.class)
-public class TransactionServiceImplTest {
+public class TransactionServiceTest {
 
     private Account account;
 
@@ -147,7 +146,7 @@ public class TransactionServiceImplTest {
 
     @Test
     public void shouldDenyTransferWithInsufficientFunds() {
-        Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(convertTwoDecimalPlace(new BigDecimal(2000))), TRANSFER);
+        Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(2000)), TRANSFER);
 
         Account accountSender = new Account(1L, "Rafael", convertTwoDecimalPlace(new BigDecimal(500)));
         Mockito.when(accountService.findById(transaction.getAccountSenderId())).thenReturn(accountSender);

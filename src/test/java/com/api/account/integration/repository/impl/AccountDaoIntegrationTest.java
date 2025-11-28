@@ -1,4 +1,4 @@
-package com.api.account.unit.repository.impl;
+package com.api.account.integration.repository.impl;
 
 import com.api.account.database.DatabaseConnection;
 import com.api.account.model.Account;
@@ -16,7 +16,7 @@ import static com.api.account.service.CalculationService.withdraw;
 import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AccountDaoImplTest {
+public class AccountDaoIntegrationTest {
 
     private AccountDao accountDao;
 
@@ -51,8 +51,6 @@ public class AccountDaoImplTest {
         Account accountDeleted = accountDao.findById(accountFound.getId());
         assertThat(accountDeleted).isNull();
     }
-
-    /* Unit Test to findById doesn't need to implement because this one is has used in the previous tests */
 
     @Test
     public void shouldFindAll() {
