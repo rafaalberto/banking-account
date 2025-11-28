@@ -61,46 +61,6 @@ public class AccountDaoIntegrationTest {
         assertThat(accounts.size()).isEqualTo(3);
     }
 
-    @Test
-    public void shouldUpdateBalance() {
-        Account accountInserted = accountDao.insert(new Account("Mary"));
-        accountInserted.setBalance(new BigDecimal(2000));
-
-        Account accountBalanceUpdated = accountDao.updateBalance(accountInserted);
-
-        assertThat(accountBalanceUpdated.getName()).isEqualTo("Mary");
-        assertThat(accountBalanceUpdated.getBalance()).isEqualTo(convertTwoDecimalPlace(new BigDecimal(2000)));
-    }
-
-    @Test
-    public void shouldUpdateBalanceByTransfer() {
-        Account accountSender = accountDeposit("Rafael", new BigDecimal(1000));
-        Account accountReceiver = accountDeposit("Mary", new BigDecimal(500));
-        accountTransfer(accountSender, accountReceiver, new BigDecimal(200));
-        verifyAccountsBalanceAfterTransfer(accountSender, accountReceiver);
-    }
-
-    private Account accountDeposit(String rafael, BigDecimal amount) {
-        Account accountSender = accountDao.insert(new Account(rafael));
-        accountSender.setBalance(deposit(accountSender.getBalance(), amount));
-        accountSender = accountDao.update(accountSender);
-        return accountSender;
-    }
-
-    private void accountTransfer(Account accountSender, Account accountReceiver, BigDecimal amount) {
-        accountSender.setBalance(withdraw(accountSender.getBalance(), amount));
-        accountReceiver.setBalance(deposit(accountReceiver.getBalance(), amount));
-        accountDao.updateBalanceByTransfer(accountSender, accountReceiver);
-    }
-
-    private void verifyAccountsBalanceAfterTransfer(Account accountSender, Account accountReceiver) {
-        accountSender = accountDao.findById(accountSender.getId());
-        accountReceiver = accountDao.findById(accountReceiver.getId());
-
-        assertThat(accountSender.getBalance()).isEqualTo(convertTwoDecimalPlace(new BigDecimal(800)));
-        assertThat(accountReceiver.getBalance()).isEqualTo(convertTwoDecimalPlace(new BigDecimal(700)));
-    }
-
     @AfterEach
     public void tearDown() {
         accountDao.deleteAll();

@@ -4,6 +4,7 @@ import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
 import com.api.account.model.Transaction;
 import com.api.account.service.AccountService;
+import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionService;
 import com.api.account.utils.HttpUtils;
 
@@ -16,9 +17,11 @@ import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 public class TransferServiceImpl implements TransactionService {
 
     private final AccountService accountService;
+    private final BalanceService balanceService;
 
-    public TransferServiceImpl(AccountService accountService) {
+    public TransferServiceImpl(AccountService accountService, BalanceService balanceService) {
         this.accountService = accountService;
+        this.balanceService = balanceService;
     }
 
     @Override
@@ -30,7 +33,7 @@ public class TransferServiceImpl implements TransactionService {
 
         accountSender.setBalance(withdraw(accountSender.getBalance(), transaction.getAmount()));
         accountReceiver.setBalance(deposit(accountReceiver.getBalance(), transaction.getAmount()));
-        accountService.updateBalanceByTransaction(accountSender, accountReceiver);
+        balanceService.updateBalancesForTransaction(accountSender, accountReceiver);
     }
 
     private void verifyData(Transaction transaction) {

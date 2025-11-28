@@ -4,6 +4,7 @@ import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
 import com.api.account.model.Transaction;
 import com.api.account.service.AccountService;
+import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionService;
 
 import java.math.BigDecimal;
@@ -14,9 +15,11 @@ import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 public class DepositServiceImpl implements TransactionService {
 
     private final AccountService accountService;
+    private final BalanceService balanceService;
 
-    public DepositServiceImpl(AccountService accountService) {
+    public DepositServiceImpl(AccountService accountService, BalanceService balanceService) {
         this.accountService = accountService;
+        this.balanceService = balanceService;
     }
 
     @Override
@@ -26,7 +29,7 @@ public class DepositServiceImpl implements TransactionService {
         verifyData(transaction);
 
         account.setBalance(deposit(account.getBalance(), transaction.getAmount()));
-        accountService.updateBalance(account);
+        balanceService.updateBalance(account);
 
     }
 

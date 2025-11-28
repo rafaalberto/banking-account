@@ -57,16 +57,6 @@ public class AccountServiceImpl implements AccountService {
         accountDao.delete(account.getId());
     }
 
-    @Override
-    public void updateBalance(Account account) {
-        accountDao.updateBalance(account);
-    }
-
-    @Override
-    public void updateBalanceByTransaction(Account accountSender, Account accountReceiver) {
-        accountDao.updateBalanceByTransfer(accountSender, accountReceiver);
-    }
-
     private void verifyData(Account account) {
         if(StringUtils.isBlank(account.getName())) {
             throw new BusinessException(HTTP_BAD_REQUEST_STATUS, "Name must be informed");
