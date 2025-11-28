@@ -1,4 +1,4 @@
-package com.api.account.resource;
+package com.api.account.integration.resource;
 
 import com.api.account.config.RoutesApplication;
 import com.api.account.database.DatabaseConnection;
@@ -6,6 +6,8 @@ import com.api.account.model.Account;
 import com.api.account.model.Message;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.impl.AccountDaoImpl;
+import com.api.account.resource.AccountResource;
+import com.api.account.resource.TransactionResource;
 import com.api.account.service.AccountService;
 import com.api.account.service.TransactionFactory;
 import com.api.account.service.impl.AccountServiceImpl;
@@ -22,7 +24,7 @@ import java.math.BigDecimal;
 import static com.api.account.utils.HttpUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AccountResourceTest {
+public class AccountResourceIntegrationTest {
 
     private static final String RESOURCE_PATH = "/accounts";
 

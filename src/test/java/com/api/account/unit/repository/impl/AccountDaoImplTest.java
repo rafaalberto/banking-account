@@ -1,8 +1,9 @@
-package com.api.account.repository.impl;
+package com.api.account.unit.repository.impl;
 
 import com.api.account.database.DatabaseConnection;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
+import com.api.account.repository.impl.AccountDaoImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
