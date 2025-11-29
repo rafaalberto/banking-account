@@ -7,5 +7,5 @@ public interface BalanceService {
 
     void updateBalance(Account account, TransactionContext transactionContext);
 
-    void updateBalancesForTransaction(Account accountSender, Account accountReceiver);
+    void updateBalancesForTransfer(Account accountSender, Account accountReceiver, TransactionContext transactionContext);
 }

@@ -67,7 +67,7 @@ public class BalanceDaoIntegrationTest {
     private void accountTransfer(Account accountSender, Account accountReceiver, BigDecimal amount) {
         accountSender.setBalance(withdraw(accountSender.getBalance(), amount));
         accountReceiver.setBalance(deposit(accountReceiver.getBalance(), amount));
-        balanceDao.updateBalancesForTransfer(accountSender, accountReceiver);
+        balanceDao.updateBalancesForTransfer(accountSender, accountReceiver, transactionContext);
     }
 
     private void verifyAccountsBalanceAfterTransfer(Account accountSender, Account accountReceiver) {

@@ -7,6 +7,6 @@ public interface BalanceDao {
 
     Account updateBalance(Account account, TransactionContext transactionContext);
 
-    void updateBalancesForTransfer(Account accountSender, Account accountReceiver);
+    void updateBalancesForTransfer(Account accountSender, Account accountReceiver, TransactionContext transactionContext);
 
 }

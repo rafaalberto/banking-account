@@ -19,8 +19,8 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public void updateBalancesForTransaction(Account accountSender, Account accountReceiver) {
-        balanceDao.updateBalancesForTransfer(accountSender, accountReceiver);
+    public void updateBalancesForTransfer(Account accountSender, Account accountReceiver, TransactionContext transactionContext) {
+        balanceDao.updateBalancesForTransfer(accountSender, accountReceiver, transactionContext);
     }
 
 }

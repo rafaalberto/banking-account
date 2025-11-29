@@ -3,6 +3,7 @@ package com.api.account.service.impl;
 import com.api.account.database.ConnectionFactory;
 import com.api.account.database.TransactionContext;
 import com.api.account.database.impl.TransactionContextImpl;
+import com.api.account.exception.BusinessException;
 import com.api.account.exception.DataAccessException;
 import com.api.account.exception.TransactionException;
 import com.api.account.service.TransactionManager;
@@ -57,8 +58,8 @@ public class TransactionManagerImpl implements TransactionManager {
                 }
             }
 
-            // Re-throw business exceptions as-is
-            if (e instanceof TransactionException) {
+            // Re-throw business exceptions as-is (don't wrap them)
+            if (e instanceof BusinessException || e instanceof TransactionException) {
                 throw e;
             }
             throw new TransactionException("Transaction failed", e);

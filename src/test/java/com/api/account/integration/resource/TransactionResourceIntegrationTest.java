@@ -90,19 +90,19 @@ public class TransactionResourceIntegrationTest {
         deleteAccount(accountInserted.getId());
     }
 
-//    @Test
-//    public void shouldDenyDepositWithAccountNotFound() {
-//        Account accountNotFound = new Account(1L, "Rafael");
-//
-//        Transaction transaction = new Transaction(accountNotFound.getId(), accountNotFound.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), DEPOSIT);
-//
-//        Message result = RestAssured.given().contentType(ContentType.JSON)
-//                .body(transaction)
-//                .post(RESOURCE_PATH)
-//                .then().statusCode(HTTP_NOT_FOUND_STATUS).extract().as(Message.class);
-//
-//        assertThat(result.getDescription()).isEqualTo("Account not found");
-//    }
+    @Test
+    public void shouldDenyDepositWithAccountNotFound() {
+        Account accountNotFound = new Account(1L, "Rafael");
+
+        Transaction transaction = new Transaction(accountNotFound.getId(), accountNotFound.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), DEPOSIT);
+
+        Message result = RestAssured.given().contentType(ContentType.JSON)
+                .body(transaction)
+                .post(RESOURCE_PATH)
+                .then().statusCode(HTTP_NOT_FOUND_STATUS).extract().as(Message.class);
+
+        assertThat(result.getDescription()).isEqualTo("Account not found");
+    }
 
     @Test
     public void shouldWithdrawSuccessfully() {
@@ -122,21 +122,21 @@ public class TransactionResourceIntegrationTest {
         deleteAccount(accountInserted.getId());
     }
 
-//    @Test
-//    public void shouldDenyWithdrawWithInsufficientFunds() {
-//        Account accountInserted = insertAccount(new Account("Mary"));
-//
-//        Transaction transaction = new Transaction(accountInserted.getId(), accountInserted.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
-//
-//        Message result = RestAssured.given().contentType(ContentType.JSON)
-//                .body(transaction)
-//                .post(RESOURCE_PATH)
-//                .then().statusCode(HTTP_BAD_REQUEST_STATUS).extract().as(Message.class);
-//
-//        assertThat(result.getDescription()).isEqualTo("Insufficient funds");
-//
-//        deleteAccount(accountInserted.getId());
-//    }
+    @Test
+    public void shouldDenyWithdrawWithInsufficientFunds() {
+        Account accountInserted = insertAccount(new Account("Mary"));
+
+        Transaction transaction = new Transaction(accountInserted.getId(), accountInserted.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
+
+        Message result = RestAssured.given().contentType(ContentType.JSON)
+                .body(transaction)
+                .post(RESOURCE_PATH)
+                .then().statusCode(HTTP_BAD_REQUEST_STATUS).extract().as(Message.class);
+
+        assertThat(result.getDescription()).isEqualTo("Insufficient funds");
+
+        deleteAccount(accountInserted.getId());
+    }
 
     @Test
     public void shouldTransferSuccessfully() {

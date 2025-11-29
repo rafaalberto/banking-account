@@ -1,6 +1,8 @@
 package com.api.account.resource;
 
 import com.api.account.exception.BusinessException;
+import com.api.account.exception.DataAccessException;
+import com.api.account.exception.TransactionException;
 import com.api.account.model.Message;
 import com.api.account.model.Transaction;
 import com.api.account.service.TransactionFactory;
@@ -32,6 +34,29 @@ public class TransactionResource {
                 }
             } catch(BusinessException e) {
                 handleApplicationException(exchange, e);
+            } catch(TransactionException e) {
+                // Unwrap TransactionException to check for BusinessException or DataAccessException
+                Throwable cause = e.getCause();
+                if (cause instanceof BusinessException) {
+                    // Re-throw BusinessException as-is to preserve HTTP status code
+                    handleApplicationException(exchange, (BusinessException) cause);
+                } else if (cause instanceof DataAccessException) {
+                    DataAccessException dataAccessException = (DataAccessException) cause;
+                    if (dataAccessException.getMessage() != null && dataAccessException.getMessage().contains("Account not found")) {
+                        handleApplicationException(exchange, new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found"));
+                    } else {
+                        handleApplicationException(exchange, e);
+                    }
+                } else {
+                    handleApplicationException(exchange, e);
+                }
+            } catch(DataAccessException e) {
+                // Convert DataAccessException for "Account not found" to BusinessException with 404
+                if (e.getMessage() != null && e.getMessage().contains("Account not found")) {
+                    handleApplicationException(exchange, new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found"));
+                } else {
+                    handleApplicationException(exchange, e);
+                }
             } catch(Exception e) {
                 handleApplicationException(exchange, e);
             }

@@ -25,7 +25,7 @@ public final class TransactionFactory {
         return Map.of(
                 TransactionType.DEPOSIT, new DepositServiceImpl(accountService, balanceService, transactionManager),
                 TransactionType.WITHDRAW, new WithdrawServiceImpl(accountService, balanceService, transactionManager),
-                TransactionType.TRANSFER, new TransferServiceImpl(accountService, balanceService)
+                TransactionType.TRANSFER, new TransferServiceImpl(accountService, balanceService, transactionManager)
         );
     }
 
