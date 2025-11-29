@@ -62,6 +62,7 @@ public class AccountDaoImpl implements AccountDao {
     }
 
     /* Created in order to use in unit test */
+    //TODO(1) - refactoring later not safe to keep here
     public void deleteAll() {
         try {
             try (Connection connection = ConnectionFactory.getConnection();
