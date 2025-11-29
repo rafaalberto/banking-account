@@ -13,8 +13,10 @@ import com.api.account.resource.TransactionResource;
 import com.api.account.service.AccountService;
 import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionFactory;
+import com.api.account.service.TransactionManager;
 import com.api.account.service.impl.AccountServiceImpl;
 import com.api.account.service.impl.BalanceServiceImpl;
+import com.api.account.service.impl.TransactionManagerImpl;
 import com.api.account.utils.NumericConverter;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -47,7 +49,8 @@ public class AccountResourceIntegrationTest {
         AccountService accountService = new AccountServiceImpl(accountDao);
         BalanceService balanceService = new BalanceServiceImpl(balanceDao);
         AccountResource accountResource = new AccountResource(accountService);
-        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService);
+        TransactionManager transactionManager = new TransactionManagerImpl();
+        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService, transactionManager);
         TransactionResource transactionResource = new TransactionResource(transactionFactory);
 
         Undertow.Builder builder = Undertow.builder();

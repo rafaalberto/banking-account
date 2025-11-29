@@ -1,5 +1,6 @@
 package com.api.account.service.impl;
 
+import com.api.account.database.TransactionContext;
 import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
@@ -35,6 +36,11 @@ public class AccountServiceImpl implements AccountService {
     public Account findById(Long id) {
         Optional<Account> account = ofNullable(accountDao.findById(id));
         return account.orElseThrow(() -> new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found"));
+    }
+
+    @Override
+    public Account findByIdWithLock(Long id, TransactionContext transactionContext) {
+        return accountDao.findByIdWithLock(id, transactionContext);
     }
 
     @Override

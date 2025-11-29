@@ -68,9 +68,8 @@ public class AccountServiceTest {
     @Test
     public void shouldUpdateAccountSuccessfullyNoBalance() {
         Account accountToUpdate = new Account(1L, "John");
-        when(accountDao.findById(1L)).thenReturn(account);
-        when(accountDao.update(accountToUpdate)).thenReturn(accountToUpdate);
         when(accountDao.findById(1L)).thenReturn(accountToUpdate);
+        when(accountDao.update(accountToUpdate)).thenReturn(accountToUpdate);
         Account accountUpdated = accountService.save(accountToUpdate);
 
         assertThat(accountUpdated.getId()).isEqualTo(1L);
