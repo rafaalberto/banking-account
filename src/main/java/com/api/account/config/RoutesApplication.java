@@ -7,7 +7,7 @@ import io.undertow.server.RoutingHandler;
 
 import static io.undertow.util.Methods.*;
 
-public abstract class RoutesApplication {
+public final class RoutesApplication {
 
     public static RoutingHandler createRoutes(AccountResource accountResource,
                                               TransactionResource transactionResource) {

@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 
-public abstract class CalculationService {
+public final class CalculationService {
 
     public static BigDecimal deposit(BigDecimal balance, BigDecimal amount) {
         return balance.add(amount);

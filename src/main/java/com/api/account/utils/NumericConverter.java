@@ -3,7 +3,7 @@ package com.api.account.utils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public abstract class NumericConverter {
+public final class NumericConverter {
 
     private static final int DECIMAL_PLACE = 2;
 
