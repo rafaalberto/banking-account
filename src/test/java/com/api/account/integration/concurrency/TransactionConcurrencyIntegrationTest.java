@@ -185,6 +185,84 @@ class TransactionConcurrencyIntegrationTest {
                 .isEqualByComparingTo(expectedFinalBalance);
     }
 
+    @Test
+    void shouldHandleConcurrentTransfers() throws InterruptedException {
+        // Setup: Two accounts
+        Account accountA = accountDao.insert(new Account("AccountA"));
+        accountA.setBalance(convertTwoDecimalPlace(new BigDecimal("1000.00")));
+        balanceDao.updateBalance(accountA, transactionContext);
+
+        Account accountB = accountDao.insert(new Account("AccountB"));
+        accountB.setBalance(convertTwoDecimalPlace(new BigDecimal("500.00")));
+        balanceDao.updateBalance(accountB, transactionContext);
+
+        Long accountAId = accountA.getId();
+        Long accountBId = accountB.getId();
+        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal("50.00"));
+        int numberOfTransfers = 10; // 10 transfers of $50 each
+
+        // Expected: A loses $500, B gains $500
+        BigDecimal expectedBalanceA = convertTwoDecimalPlace(new BigDecimal("500.00"));
+        BigDecimal expectedBalanceB = convertTwoDecimalPlace(new BigDecimal("1000.00"));
+
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfTransfers);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch completionLatch = new CountDownLatch(numberOfTransfers);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        for (int i = 0; i < numberOfTransfers; i++) {
+            executor.submit(() -> {
+                try {
+                    startLatch.await();
+
+                    Transaction transaction = new Transaction(
+                            accountAId,
+                            accountBId,
+                            transferAmount,
+                            TransactionType.TRANSFER
+                    );
+
+                    transactionFactory.getService(TransactionType.TRANSFER)
+                            .execute(transaction);
+
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    completionLatch.countDown();
+                }
+            });
+        }
+
+        startLatch.countDown();
+        boolean allCompleted = completionLatch.await(30, TimeUnit.SECONDS);
+
+        executor.shutdown();
+        executor.awaitTermination(5, TimeUnit.SECONDS);
+
+        // Verify
+        assertThat(allCompleted).isTrue();
+        assertThat(successCount.get()).isEqualTo(numberOfTransfers);
+
+        Account finalAccountA = accountDao.findById(accountAId);
+        Account finalAccountB = accountDao.findById(accountBId);
+
+        assertThat(finalAccountA.getBalance())
+                .as("Account A should have $500.00")
+                .isEqualByComparingTo(expectedBalanceA);
+
+        assertThat(finalAccountB.getBalance())
+                .as("Account B should have $1000.00")
+                .isEqualByComparingTo(expectedBalanceB);
+
+        // Verify total money is preserved (no money created or lost)
+        BigDecimal totalBefore = convertTwoDecimalPlace(new BigDecimal("1500.00"));
+        BigDecimal totalAfter = finalAccountA.getBalance().add(finalAccountB.getBalance());
+        assertThat(totalAfter)
+                .as("Total money should be preserved")
+                .isEqualByComparingTo(totalBefore);
+    }
+
     @AfterEach
     void tearDown() throws SQLException {
         if (transactionContext instanceof TransactionContextImpl) {
