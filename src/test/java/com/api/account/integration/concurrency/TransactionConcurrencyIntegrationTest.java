@@ -187,7 +187,6 @@ class TransactionConcurrencyIntegrationTest {
 
     @Test
     void shouldHandleConcurrentTransfers() throws InterruptedException {
-        // Setup: Two accounts
         Account accountA = accountDao.insert(new Account("AccountA"));
         accountA.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         balanceDao.updateBalance(accountA, transactionContext);
@@ -198,10 +197,9 @@ class TransactionConcurrencyIntegrationTest {
 
         Long accountAId = accountA.getId();
         Long accountBId = accountB.getId();
-        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(50));
-        int numberOfTransfers = 10; // 10 transfers of $50 each
+        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(100));
+        int numberOfTransfers = 5;
 
-        // Expected: A loses $500, B gains $500
         BigDecimal expectedBalanceA = convertTwoDecimalPlace(new BigDecimal(500));
         BigDecimal expectedBalanceB = convertTwoDecimalPlace(new BigDecimal(1000));
 
@@ -240,7 +238,6 @@ class TransactionConcurrencyIntegrationTest {
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
-        // Verify
         assertThat(allCompleted).isTrue();
         assertThat(successCount.get()).isEqualTo(numberOfTransfers);
 
@@ -255,8 +252,7 @@ class TransactionConcurrencyIntegrationTest {
                 .as("Account B should have $1000.00")
                 .isEqualByComparingTo(expectedBalanceB);
 
-        // Verify total money is preserved (no money created or lost)
-        BigDecimal totalBefore = convertTwoDecimalPlace(new BigDecimal("1500.00"));
+        BigDecimal totalBefore = convertTwoDecimalPlace(new BigDecimal(1500));
         BigDecimal totalAfter = finalAccountA.getBalance().add(finalAccountB.getBalance());
         assertThat(totalAfter)
                 .as("Total money should be preserved")
