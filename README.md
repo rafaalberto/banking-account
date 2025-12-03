@@ -26,7 +26,7 @@ This repository demonstrates:
 ## 🔄 Refactor 2025 — Improvements
 
 ### 🔴 Issues in the original 2019 version
-- Race conditions during deposits, withdrawals, and transfers
+- Race conditions during deposits, withdrawals, and transfers 
 - Ineffective locking using `synchronized(this)`
 - A single shared JDBC Connection instance (not thread-safe)
 - Missing `rollback()` in multi-step database operations
@@ -35,19 +35,18 @@ This repository demonstrates:
 - No concurrency or integration tests
 
 ### 🟢 Fixes Implemented in 2025 *(WIP)*
-- Migration to **Java 21** & build system migration to **Gradle**
-- Codebase cleanup and preparation for dependency injection
-- Improved folder structure and project organization
+- Migration to **Java 21** & build system migration to **Gradle** ✅
+- Codebase cleanup and preparation for dependency injection ✅
+- Improved folder structure and project organization ✅
 - Cleanup of DAO responsibilities
 - Documentation updates (README, ARCHITECTURE, templates)
 
 ### 📌 Upcoming improvements (Planned)
-- Atomic SQL updates for deposits/withdrawals
-- Pessimistic row locking using `SELECT FOR UPDATE`
-- Replace single connection with connection pool (DataSource)
-- Introduce proper transactional rollback
-- Add concurrency tests (ExecutorService)
-- Add integration tests
+- Pessimistic row locking using `SELECT FOR UPDATE` ✅
+- Replace single connection with connection pool (DataSource) ✅
+- Introduce proper transactional rollback ✅
+- Add concurrency tests (ExecutorService) ✅
+- Add integration tests ✅
 - Add exception hierarchy & structured logging
 
 ---

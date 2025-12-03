@@ -61,19 +61,6 @@ public class AccountDaoImpl implements AccountDao {
         }
     }
 
-    /* Created in order to use in unit test */
-    //TODO(1) - refactoring later not safe to keep here
-    public void deleteAll() {
-        try {
-            try (Connection connection = ConnectionFactory.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement("delete from accounts")) {
-                preparedStatement.execute();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error to delete", e);
-        }
-    }
-
     public List<Account> findAll() {
         String sql = "select * from accounts";
         try {

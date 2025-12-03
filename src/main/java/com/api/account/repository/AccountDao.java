@@ -13,8 +13,6 @@ public interface AccountDao {
 
     void delete(Long id);
 
-    void deleteAll();
-
     List<Account> findAll();
 
     Account findById(Long id);

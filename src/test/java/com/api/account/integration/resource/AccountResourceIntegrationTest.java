@@ -6,6 +6,7 @@ import com.api.account.model.Account;
 import com.api.account.model.Message;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.BalanceDao;
+import com.api.account.unit.utils.TestDatabaseUtils;
 import com.api.account.repository.impl.AccountDaoImpl;
 import com.api.account.repository.impl.BalanceDaoImpl;
 import com.api.account.resource.AccountResource;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 
 import static com.api.account.utils.HttpUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -137,8 +139,8 @@ public class AccountResourceIntegrationTest {
     }
 
     @AfterEach
-    public void finish() {
+    public void finish() throws SQLException {
         server.stop();
-        accountDao.deleteAll();
+        TestDatabaseUtils.deleteAllAccounts();
     }
 }
