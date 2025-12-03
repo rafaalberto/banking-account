@@ -153,7 +153,7 @@ class TransactionConcurrencyIntegrationTest {
                     // Wait for start signal (all threads wait here)
                     startLatch.await();
 
-                    Transaction transaction = new Transaction(accountId, accountId, withdrawAmount, TransactionType.DEPOSIT);
+                    Transaction transaction = new Transaction(accountId, accountId, withdrawAmount, TransactionType.WITHDRAW);
                     transactionFactory.getService(TransactionType.WITHDRAW).execute(transaction);
 
                     successCount.incrementAndGet();
