@@ -259,6 +259,82 @@ class TransactionConcurrencyIntegrationTest {
                 .isEqualByComparingTo(totalBefore);
     }
 
+    /**
+     * Test that deadlocks don't occur when transfers happen in opposite directions.
+     *
+     * Thread 1: Transfer A → B
+     * Thread 2: Transfer B → A
+     *
+     * Without proper locking order: DEADLOCK!
+     * With proper locking order: Both complete successfully
+     */
+    @Test
+    void shouldPreventDeadlocks() throws InterruptedException {
+        Account accountA = accountDao.insert(new Account("AccountA"));
+        accountA.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        balanceDao.updateBalance(accountA, transactionContext);
+
+        Account accountB = accountDao.insert(new Account("AccountB"));
+        accountB.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        balanceDao.updateBalance(accountB, transactionContext);
+
+        Long accountAId = accountA.getId();
+        Long accountBId = accountB.getId();
+        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(100));
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch completionLatch = new CountDownLatch(2);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        // Thread 1: A → B
+        executor.submit(() -> {
+            try {
+                startLatch.await();
+                Transaction transaction = new Transaction(
+                        accountAId, accountBId, transferAmount, TransactionType.TRANSFER
+                );
+                transactionFactory.getService(TransactionType.TRANSFER).execute(transaction);
+                successCount.incrementAndGet();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                completionLatch.countDown();
+            }
+        });
+
+        // Thread 2: B → A (opposite direction - potential deadlock!)
+        executor.submit(() -> {
+            try {
+                startLatch.await();
+                Transaction transaction = new Transaction(
+                        accountBId, accountAId, transferAmount, TransactionType.TRANSFER
+                );
+                transactionFactory.getService(TransactionType.TRANSFER).execute(transaction);
+                successCount.incrementAndGet();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                completionLatch.countDown();
+            }
+        });
+
+        startLatch.countDown();
+
+        boolean allCompleted = completionLatch.await(10, TimeUnit.SECONDS);
+
+        executor.shutdown();
+        executor.awaitTermination(5, TimeUnit.SECONDS);
+
+        assertThat(allCompleted)
+                .as("Both transfers should complete without deadlock")
+                .isTrue();
+
+        assertThat(successCount.get())
+                .as("Both transfers should succeed")
+                .isEqualTo(2);
+    }
+
     @AfterEach
     void tearDown() throws SQLException {
         if (transactionContext instanceof TransactionContextImpl) {
