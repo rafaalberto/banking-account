@@ -1,5 +1,6 @@
 package com.api.account.service.impl;
 
+import com.api.account.database.TransactionContext;
 import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import static com.api.account.service.AccountLockManager.removeLock;
 import static com.api.account.utils.HttpUtils.HTTP_BAD_REQUEST_STATUS;
 import static com.api.account.utils.HttpUtils.HTTP_NOT_FOUND_STATUS;
 import static java.util.Optional.ofNullable;
@@ -38,6 +40,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public Account findByIdWithLock(Long id, TransactionContext transactionContext) {
+        return accountDao.findByIdWithLock(id, transactionContext);
+    }
+
+    @Override
     public Account save(Account account) {
         verifyData(account);
         if(account.getId() == null) {
@@ -55,6 +62,8 @@ public class AccountServiceImpl implements AccountService {
     public void delete(Long id) {
         Account account = findById(id);
         accountDao.delete(account.getId());
+        // Clean up the lock to prevent memory leak
+        removeLock(id);
     }
 
     private void verifyData(Account account) {

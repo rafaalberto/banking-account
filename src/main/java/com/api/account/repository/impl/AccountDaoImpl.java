@@ -1,6 +1,9 @@
 package com.api.account.repository.impl;
 
 import com.api.account.database.ConnectionFactory;
+import com.api.account.database.TransactionContext;
+import com.api.account.database.impl.TransactionContextImpl;
+import com.api.account.exception.DataAccessException;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
 
@@ -59,6 +62,7 @@ public class AccountDaoImpl implements AccountDao {
     }
 
     /* Created in order to use in unit test */
+    //TODO(1) - refactoring later not safe to keep here
     public void deleteAll() {
         try {
             try (Connection connection = ConnectionFactory.getConnection();
@@ -112,6 +116,30 @@ public class AccountDaoImpl implements AccountDao {
         }
     }
 
+    public Account findByIdWithLock(Long id, TransactionContext context) {
+        Connection connection = getConnection(context);
+        String sql = "SELECT * FROM accounts WHERE id = ? FOR UPDATE";
+        Account account = null;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                account = new Account();
+                account.setId(resultSet.getLong("id"));
+                account.setName(resultSet.getString("name"));
+                account.setBalance(resultSet.getBigDecimal("balance"));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to find account with lock: " + id, e);
+        }
+
+        if (account == null) {
+            throw new DataAccessException("Account not found with id: " + id);
+        }
+        return account;
+    }
+
+
     private Long getGeneratedId(PreparedStatement preparedStatement, int rowsAffected) throws SQLException {
         if (rowsAffected > BigInteger.ZERO.intValue()) {
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
@@ -123,6 +151,13 @@ public class AccountDaoImpl implements AccountDao {
             }
         }
         return null;
+    }
+
+    private Connection getConnection(TransactionContext context) {
+        if (context instanceof TransactionContextImpl) {
+            return ((TransactionContextImpl) context).getConnection();
+        }
+        throw new IllegalArgumentException("Invalid transaction context");
     }
 
 }

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import static com.api.account.utils.JsonConverter.convertToJson;
 import static io.undertow.util.Headers.CONTENT_TYPE;
 
-public abstract class HttpUtils {
+public final class HttpUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
 

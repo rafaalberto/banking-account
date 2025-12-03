@@ -8,12 +8,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.util.List;
 
-import static com.api.account.service.CalculationService.deposit;
-import static com.api.account.service.CalculationService.withdraw;
-import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccountDaoIntegrationTest {

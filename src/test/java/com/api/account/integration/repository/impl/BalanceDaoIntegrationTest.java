@@ -1,6 +1,9 @@
 package com.api.account.integration.repository.impl;
 
+import com.api.account.database.ConnectionFactory;
 import com.api.account.database.DatabaseConnection;
+import com.api.account.database.TransactionContext;
+import com.api.account.database.impl.TransactionContextImpl;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.BalanceDao;
@@ -11,7 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import static com.api.account.service.CalculationService.deposit;
 import static com.api.account.service.CalculationService.withdraw;
@@ -22,12 +26,16 @@ public class BalanceDaoIntegrationTest {
 
     private AccountDao accountDao;
     private BalanceDao balanceDao;
+    private TransactionContext transactionContext;
 
     @BeforeEach
-    public void setUp () {
+    public void setUp () throws SQLException {
         DatabaseConnection.startup();
         accountDao = new AccountDaoImpl();
         balanceDao = new BalanceDaoImpl();
+
+        Connection connection = ConnectionFactory.getConnection();
+        transactionContext = new TransactionContextImpl(connection);
     }
 
     @Test
@@ -35,7 +43,7 @@ public class BalanceDaoIntegrationTest {
         Account accountInserted = accountDao.insert(new Account("Mary"));
         accountInserted.setBalance(new BigDecimal(2000));
 
-        Account accountBalanceUpdated = balanceDao.updateBalance(accountInserted);
+        Account accountBalanceUpdated = balanceDao.updateBalance(accountInserted, transactionContext);
 
         assertThat(accountBalanceUpdated.getName()).isEqualTo("Mary");
         assertThat(accountBalanceUpdated.getBalance()).isEqualTo(convertTwoDecimalPlace(new BigDecimal(2000)));
@@ -52,14 +60,14 @@ public class BalanceDaoIntegrationTest {
     private Account accountDeposit(String rafael, BigDecimal amount) {
         Account accountSender = accountDao.insert(new Account(rafael));
         accountSender.setBalance(deposit(accountSender.getBalance(), amount));
-        accountSender = balanceDao.updateBalance(accountSender);
+        accountSender = balanceDao.updateBalance(accountSender, transactionContext);
         return accountSender;
     }
 
     private void accountTransfer(Account accountSender, Account accountReceiver, BigDecimal amount) {
         accountSender.setBalance(withdraw(accountSender.getBalance(), amount));
         accountReceiver.setBalance(deposit(accountReceiver.getBalance(), amount));
-        balanceDao.updateBalancesForTransfer(accountSender, accountReceiver);
+        balanceDao.updateBalancesForTransfer(accountSender, accountReceiver, transactionContext);
     }
 
     private void verifyAccountsBalanceAfterTransfer(Account accountSender, Account accountReceiver) {
@@ -71,7 +79,10 @@ public class BalanceDaoIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    public void tearDown() throws SQLException {
+        if (transactionContext instanceof TransactionContextImpl) {
+            ((TransactionContextImpl) transactionContext).getConnection().close();
+        }
         accountDao.deleteAll();
     }
 

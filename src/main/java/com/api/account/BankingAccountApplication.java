@@ -12,8 +12,10 @@ import com.api.account.resource.TransactionResource;
 import com.api.account.service.AccountService;
 import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionFactory;
+import com.api.account.service.TransactionManager;
 import com.api.account.service.impl.AccountServiceImpl;
 import com.api.account.service.impl.BalanceServiceImpl;
+import com.api.account.service.impl.TransactionManagerImpl;
 import io.undertow.Undertow;
 import io.undertow.server.RoutingHandler;
 import org.slf4j.Logger;
@@ -34,7 +36,8 @@ public class BankingAccountApplication {
         BalanceDao balanceDao = new BalanceDaoImpl();
         AccountService accountService = new AccountServiceImpl(accountDao);
         BalanceService balanceService = new BalanceServiceImpl(balanceDao);
-        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService);
+        TransactionManager transactionManager = new TransactionManagerImpl();
+        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService, transactionManager);
 
         AccountResource accountResource = new AccountResource(accountService);
         TransactionResource transactionResource = new TransactionResource(transactionFactory);

@@ -9,7 +9,7 @@ import java.io.IOException;
 
 import static com.api.account.utils.HttpUtils.*;
 
-public abstract class JsonConverter {
+public final class JsonConverter {
 
     public static String convertToJson(Object data) throws Exception {
         var mapper = new ObjectMapper();

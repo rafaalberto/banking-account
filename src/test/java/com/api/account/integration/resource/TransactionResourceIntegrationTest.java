@@ -1,7 +1,10 @@
 package com.api.account.integration.resource;
 
 import com.api.account.config.RoutesApplication;
+import com.api.account.database.ConnectionFactory;
 import com.api.account.database.DatabaseConnection;
+import com.api.account.database.TransactionContext;
+import com.api.account.database.impl.TransactionContextImpl;
 import com.api.account.model.Account;
 import com.api.account.model.Message;
 import com.api.account.model.Transaction;
@@ -14,8 +17,10 @@ import com.api.account.resource.TransactionResource;
 import com.api.account.service.AccountService;
 import com.api.account.service.BalanceService;
 import com.api.account.service.TransactionFactory;
+import com.api.account.service.TransactionManager;
 import com.api.account.service.impl.AccountServiceImpl;
 import com.api.account.service.impl.BalanceServiceImpl;
+import com.api.account.service.impl.TransactionManagerImpl;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.undertow.Undertow;
@@ -24,6 +29,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import static com.api.account.enumeration.TransactionType.*;
 import static com.api.account.utils.HttpUtils.*;
@@ -37,18 +44,25 @@ public class TransactionResourceIntegrationTest {
     private AccountDao accountDao = new AccountDaoImpl();
     private BalanceDao balanceDao = new BalanceDaoImpl();
 
+    private TransactionContext transactionContext;
+
     private Undertow server;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws SQLException {
         DatabaseConnection.startup();
 
         this.accountDao = new AccountDaoImpl();
         this.balanceDao = new BalanceDaoImpl();
+
+        Connection connection = ConnectionFactory.getConnection();
+        transactionContext = new TransactionContextImpl(connection);
+
         AccountService accountService = new AccountServiceImpl(accountDao);
         BalanceService balanceService = new BalanceServiceImpl(balanceDao);
         AccountResource accountResource = new AccountResource(accountService);
-        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService);
+        TransactionManager transactionManager = new TransactionManagerImpl();
+        TransactionFactory transactionFactory = new TransactionFactory(accountService, balanceService, transactionManager);
         TransactionResource transactionResource = new TransactionResource(transactionFactory);
 
         Undertow.Builder builder = Undertow.builder();
@@ -94,7 +108,7 @@ public class TransactionResourceIntegrationTest {
     public void shouldWithdrawSuccessfully() {
         Account accountInserted = insertAccount(new Account("Mary"));
         accountInserted.setBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
-        updateBalance(accountInserted);
+        updateBalance(accountInserted, transactionContext);
 
         Transaction transaction = new Transaction(accountInserted.getId(), accountInserted.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
 
@@ -128,11 +142,11 @@ public class TransactionResourceIntegrationTest {
     public void shouldTransferSuccessfully() {
         Account accountSender = insertAccount(new Account("Mary"));
         accountSender.setBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
-        updateBalance(accountSender);
+        updateBalance(accountSender, transactionContext);
 
         Account accountReceiver = insertAccount(new Account("Rafael"));
         accountReceiver.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        updateBalance(accountReceiver);
+        updateBalance(accountReceiver, transactionContext);
 
         Transaction transaction = new Transaction(accountSender.getId(), accountReceiver.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
 
@@ -151,7 +165,7 @@ public class TransactionResourceIntegrationTest {
     public void shouldDenyTransferWithSameAccount() {
         Account accountSender = insertAccount(new Account("Mary"));
         accountSender.setBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
-        updateBalance(accountSender);
+        updateBalance(accountSender, transactionContext);
 
         Transaction transaction = new Transaction(accountSender.getId(), accountSender.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
 
@@ -166,9 +180,12 @@ public class TransactionResourceIntegrationTest {
     }
 
     @AfterEach
-    public void finish() {
+    public void finish() throws SQLException {
         if (server != null) {
             server.stop();
+        }
+        if (transactionContext instanceof TransactionContextImpl) {
+            ((TransactionContextImpl) transactionContext).getConnection().close();
         }
         accountDao.deleteAll();
     }
@@ -177,8 +194,8 @@ public class TransactionResourceIntegrationTest {
         return accountDao.insert(account);
     }
 
-    private void updateBalance(Account account) {
-        balanceDao.updateBalance(account);
+    private void updateBalance(Account account, TransactionContext transactionContext) {
+        balanceDao.updateBalance(account, transactionContext);
     }
 
     private void deleteAccount(Long accountId) {
