@@ -10,6 +10,7 @@ import com.api.account.model.Message;
 import com.api.account.model.Transaction;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.BalanceDao;
+import com.api.account.unit.utils.TestDatabaseUtils;
 import com.api.account.repository.impl.AccountDaoImpl;
 import com.api.account.repository.impl.BalanceDaoImpl;
 import com.api.account.resource.AccountResource;
@@ -187,7 +188,7 @@ public class TransactionResourceIntegrationTest {
         if (transactionContext instanceof TransactionContextImpl) {
             ((TransactionContextImpl) transactionContext).getConnection().close();
         }
-        accountDao.deleteAll();
+        TestDatabaseUtils.deleteAllAccounts();
     }
 
     private Account insertAccount(Account account) {

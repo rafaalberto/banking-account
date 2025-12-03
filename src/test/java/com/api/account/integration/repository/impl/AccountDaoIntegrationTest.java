@@ -3,11 +3,13 @@ package com.api.account.integration.repository.impl;
 import com.api.account.database.DatabaseConnection;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
+import com.api.account.unit.utils.TestDatabaseUtils;
 import com.api.account.repository.impl.AccountDaoImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,8 +60,8 @@ public class AccountDaoIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() {
-        accountDao.deleteAll();
+    public void tearDown() throws SQLException {
+        TestDatabaseUtils.deleteAllAccounts();
     }
 
 }

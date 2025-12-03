@@ -9,6 +9,7 @@ import com.api.account.model.Account;
 import com.api.account.model.Transaction;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.BalanceDao;
+import com.api.account.unit.utils.TestDatabaseUtils;
 import com.api.account.repository.impl.AccountDaoImpl;
 import com.api.account.repository.impl.BalanceDaoImpl;
 import com.api.account.service.AccountService;
@@ -340,7 +341,7 @@ class TransactionConcurrencyIntegrationTest {
         if (transactionContext instanceof TransactionContextImpl) {
             ((TransactionContextImpl) transactionContext).getConnection().close();
         }
-        accountDao.deleteAll();
+        TestDatabaseUtils.deleteAllAccounts();
     }
 
 }
