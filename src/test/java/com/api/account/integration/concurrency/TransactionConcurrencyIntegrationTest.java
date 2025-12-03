@@ -189,28 +189,28 @@ class TransactionConcurrencyIntegrationTest {
     void shouldHandleConcurrentTransfers() throws InterruptedException {
         // Setup: Two accounts
         Account accountA = accountDao.insert(new Account("AccountA"));
-        accountA.setBalance(convertTwoDecimalPlace(new BigDecimal("1000.00")));
+        accountA.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         balanceDao.updateBalance(accountA, transactionContext);
 
         Account accountB = accountDao.insert(new Account("AccountB"));
-        accountB.setBalance(convertTwoDecimalPlace(new BigDecimal("500.00")));
+        accountB.setBalance(convertTwoDecimalPlace(new BigDecimal(500)));
         balanceDao.updateBalance(accountB, transactionContext);
 
         Long accountAId = accountA.getId();
         Long accountBId = accountB.getId();
-        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal("50.00"));
+        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(50));
         int numberOfTransfers = 10; // 10 transfers of $50 each
 
         // Expected: A loses $500, B gains $500
-        BigDecimal expectedBalanceA = convertTwoDecimalPlace(new BigDecimal("500.00"));
-        BigDecimal expectedBalanceB = convertTwoDecimalPlace(new BigDecimal("1000.00"));
+        BigDecimal expectedBalanceA = convertTwoDecimalPlace(new BigDecimal(500));
+        BigDecimal expectedBalanceB = convertTwoDecimalPlace(new BigDecimal(1000));
 
         ExecutorService executor = Executors.newFixedThreadPool(numberOfTransfers);
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch completionLatch = new CountDownLatch(numberOfTransfers);
         AtomicInteger successCount = new AtomicInteger(0);
 
-        for (int i = 0; i < numberOfTransfers; i++) {
+        for (int index = 0; index < numberOfTransfers; index++) {
             executor.submit(() -> {
                 try {
                     startLatch.await();
