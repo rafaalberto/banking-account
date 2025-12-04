@@ -1,5 +1,10 @@
 # Banking Account API — Refactored in 2025
 
+[![CI](https://github.com/rafaalberto/banking-account/actions/workflows/ci.yml/badge.svg)](https://github.com/rafaalberto/banking-account/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Build](https://img.shields.io/badge/Build-Gradle-02303A.svg?logo=gradle)
+
 This project was originally developed in **2019** as part of a coding challenge for **Revolut**.  
 In **2025**, the application is undergoing a **complete refactor** to improve concurrency safety, transactional integrity, architecture, and test coverage.
 
