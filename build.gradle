@@ -75,3 +75,15 @@ tasks.register('integrationTest', Test) {
 tasks.named('check') {
     dependsOn('integrationTest')
 }
+
+jar {
+    archiveFileName = 'banking-account.jar'
+    manifest {
+        attributes 'Main-Class': 'com.api.account.BankingAccountApplication'
+    }
+    // Include all dependencies in the JAR (fat JAR)
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
