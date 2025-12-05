@@ -8,7 +8,8 @@ import java.sql.SQLException;
 
 public class ConnectionFactory {
 
-    private static final String DATABASE_URL = "jdbc:h2:~/test";
+    private static final String DATABASE_PATH = System.getenv().getOrDefault("H2_DATABASE_PATH", "~/test");
+    private static final String DATABASE_URL = "jdbc:h2:" + DATABASE_PATH;
     private static final String DATABASE_USER = "sa";
     private static final String DATABASE_PASSWORD = "";
     private static final HikariDataSource dataSource;

@@ -14,7 +14,7 @@ public final class HttpUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
 
     public static final int APP_PORT = 8080;
-    public static final String APP_HOST = "localhost";
+    public static final String APP_HOST = "0.0.0.0";
 
     public static final int TEST_PORT = 8090;
 

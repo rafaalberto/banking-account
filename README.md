@@ -1,76 +1,101 @@
 # Banking Account API — Refactored in 2025
 
+## Status & Technology Badges
 [![CI](https://github.com/rafaalberto/banking-account/actions/workflows/ci.yml/badge.svg)](https://github.com/rafaalberto/banking-account/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-orange)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Build](https://img.shields.io/badge/Build-Gradle-02303A.svg?logo=gradle)
-
-This project was originally developed in **2019** as part of a coding challenge for **Revolut**.  
-In **2025**, the application is undergoing a **complete refactor** to improve concurrency safety, transactional integrity, architecture, and test coverage.
-
-This repository demonstrates:
-- A lightweight REST API in Java with no heavy frameworks
-- Correct handling of financial transactions *(WIP)*
-- Safe concurrent operations *(WIP)*
-- Clean architecture and SOLID principles *(WIP)*
-- Comprehensive unit, integration, and concurrency testing *(WIP)*
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 🚀 Technologies
+## Overview
 
-- **Java 21** (updated Nov/2025)
-- **Undertow** (embedded HTTP server)
+This project was originally developed in **2019** as part of a coding challenge for **Revolut**.  
+In **2025**, it is undergoing a full refactor focused on concurrency safety, transactional integrity, clean architecture, and robust testing.
+
+This repository serves as both an **engineering case study** and a **progressive refactor**, showcasing how a legacy codebase evolves into a modern and production-ready design.
+
+---
+
+## ✨ Features
+
+- Lightweight REST API using Undertow (no heavy frameworks)
+- Thread-safe handling of financial operations
+- Proper transactional boundaries with rollback
+- In-memory H2 database for fast integration testing
+- SOLID principles
+- Full refactor moving toward dependency injection and structured logging
+
+---
+
+## 🎯 Project Goals (2025)
+
+- Modernize the 2019 codebase using Java 21
+- Introduce concurrency-safe transaction handling
+- Improve separation of concerns and eliminate architecture anti-patterns
+- Provide comprehensive test coverage
+- Deliver a template-quality codebase for educational and professional purposes
+
+---
+
+## 🧱 Tech Stack
+
+- **Java 21**
+- **Undertow (Embedded Web Server)**
 - **JDBC + H2 Database**
-- **REST Assured** (API testing)
-- **JUnit 5**
 - **Gradle**
+- **JUnit 5**, **REST Assured**
+- **Docker** (optional execution)
 
 ---
 
 ## 🔄 Refactor 2025 — Improvements
 
-### 🔴 Issues in the original 2019 version
-- Race conditions during deposits, withdrawals, and transfers 
-- Ineffective locking using `synchronized(this)`
-- A single shared JDBC Connection instance (not thread-safe)
-- Missing `rollback()` in multi-step database operations
-- Violations of **DIP** (Dependency Inversion Principle)
-- DAO mixing unrelated responsibilities
-- No concurrency or integration tests
+### Key Issues Identified in the 2019 Version
+- Race conditions in transfers, deposits, and withdrawals
+- Shared singleton JDBC connection (thread-unsafe)
+- Missing rollback in multi-step operations
+- DAO violating separation of concerns
+- Poor locking strategy (`synchronized(this)`)
+- No concurrency or integration testing
 
-### 🟢 Fixes Implemented in 2025 *(WIP)*
-- Migration to **Java 21** & build system migration to **Gradle** ✅
-- Codebase cleanup and preparation for dependency injection ✅
-- Improved folder structure and project organization ✅
-- Cleanup of DAO responsibilities
-- Documentation updates (README, ARCHITECTURE, templates)
+### Fixes Implemented in 2025 *(WIP)*
+- Upgraded to **Java 21**
+- Improved foundation for dependency injection
+- Introduced connection pooling
+- Added pessimistic row locking via `SELECT FOR UPDATE`
+- Extracted DAO responsibilities
+- Added project documentation
+- Added integration + concurrency tests
 
-### 📌 Upcoming improvements (Planned)
-- Pessimistic row locking using `SELECT FOR UPDATE` ✅
-- Replace single connection with connection pool (DataSource) ✅
-- Introduce proper transactional rollback ✅
-- Add concurrency tests (ExecutorService) ✅
-- Add integration tests ✅
-- Add exception hierarchy & structured logging
+### Upcoming Improvements
+- Add structured logs and exception hierarchy
+- The `Account` entity will be refactored into an **immutable model**.
 
 ---
 
 ## ▶ Running the Application
 
-Build the project:
+You may run the application **locally** or through **Docker**.  
+Docker is the recommended approach for consistency and portability.
+
+---
+
+### Option A — Run Locally
+
+Build:
 
 ```bash
 ./gradlew clean build
 ```
 
-Start the server:
+Run:
 
 ```bash
 java -jar build/libs/banking-account.jar
 ```
 
-The API will be available at:
+Access the API at:
 
 ```
 http://localhost:8080
@@ -78,217 +103,54 @@ http://localhost:8080
 
 ---
 
-## 🧪 Running Tests
+### Option B — Run with Docker (Recommended)
 
-Unit tests:
+#### 1) Build the Docker Image
 
 ```bash
-./gradlew test
+docker build -t banking-account:latest .
 ```
 
-(Integration and concurrency tests coming as part of the ongoing refactor.)
+Optional semantic versioning:
+
+```bash
+docker build -t banking-account:1.0.0 .
+```
 
 ---
 
-# 📐 Architecture Overview
+#### 2) Run the Container
+
+```bash
+docker run -d -p 8080:8080 --name banking-account banking-account:latest
+```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+./gradlew test
+./gradlew integrationTest
+```
+
+---
+
+## 📐 Architecture Overview
 
 ```
 REST Controller → Service Layer → DAO → H2 Database
 ```
 
-- The service layer contains business rules.
-- The DAO layer manages SQL queries and transactions.
-- Undertow handles HTTP routing without heavy frameworks.
-
-More details are available in: **ARCHITECTURE.md**
-
 ---
 
-# 📚 API Documentation
+## 🤝 Contributing
 
-Below is the structure of the REST API as implemented in the original challenge.  
-The refactor maintains backward compatibility while improving internal logic.
-
----
-
-## 🔵 Accounts
-
-### **Create Account**
-**POST** `/accounts`
-
-**Request**
-```json
-{
-  "name": "Rafael"
-}
-```
-
-**Response**
-```json
-{
-  "id": 1,
-  "name": "Rafael",
-  "balance": 0.00
-}
-```
-
----
-
-### **Update Account**
-**PUT** `/accounts/1`
-
-**Request**
-```json
-{
-  "name": "John"
-}
-```
-
-**Response**
-```json
-{
-  "id": 1,
-  "name": "John",
-  "balance": 0.00
-}
-```
-
----
-
-### **Delete Account**
-**DELETE** `/accounts/1`
-
-**Response**  
-`204 No Content`
-
----
-
-### **Get Account by ID**
-**GET** `/accounts/1`
-
-**Response**
-```json
-{
-  "id": 1,
-  "name": "Rafael",
-  "balance": 0.00
-}
-```
-
----
-
-### **List All Accounts**
-**GET** `/accounts`
-
-**Response**
-```json
-[
-  {
-    "id": 1,
-    "name": "Rafael",
-    "balance": 1000.00
-  },
-  {
-    "id": 2,
-    "name": "Mary",
-    "balance": 2000.30
-  },
-  {
-    "id": 3,
-    "name": "Pedro",
-    "balance": 800.00
-  }
-]
-```
-
----
-
-## 🟣 Transactions
-
-All transaction types share the same endpoint.  
-Behavior depends on the **type** field.
-
----
-
-### **Deposit**
-**POST** `/transactions`
-
-**Request**
-```json
-{
-  "accountSenderId": 1,
-  "accountReceiverId": 1,
-  "amount": 5000,
-  "type": "DEPOSIT"
-}
-```
-
-**Response**
-```json
-{
-  "success": true,
-  "description": "Deposit executed successfully"
-}
-```
-
----
-
-### **Withdraw**
-**POST** `/transactions`
-
-**Request**
-```json
-{
-  "accountSenderId": 1,
-  "accountReceiverId": 1,
-  "amount": 100,
-  "type": "WITHDRAW"
-}
-```
-
-**Response**
-```json
-{
-  "success": true,
-  "description": "Withdraw executed successfully"
-}
-```
-
----
-
-### **Transfer**
-**POST** `/transactions`
-
-**Request**
-```json
-{
-  "accountSenderId": 1,
-  "accountReceiverId": 2,
-  "amount": 500,
-  "type": "TRANSFER"
-}
-```
-
-**Response**
-```json
-{
-  "success": true,
-  "description": "Transfer executed successfully"
-}
-```
-
----
-
-## 📌 Next Steps (WIP Roadmap)
-- Add concurrency-safe operations ✅
-- Implement database-level locking ✅
-- Add DataSource & connection pooling ✅
-- Expand test coverage (integration + concurrency) ✅
-- Improve error handling and validation
-- Containerize the application (Docker)
+Contributions and suggestions are welcome as development continues.
 
 ---
 
 ## ⭐ Final Notes
-This repository is both an **educational refactor** and an **engineering case study** demonstrating improvements over time.  
-More updates will be added as the refactor continues.
+
+This repository serves as both an educational reference and an evolving engineering case study.
+Additional improvements will be introduced progressively as the refactor advances.
