@@ -131,6 +131,7 @@ docker run -d -p 8080:8080 --name banking-account banking-account:latest
 
 ```bash
 ./gradlew test
+./gradlew integrationTest
 ```
 
 ---
