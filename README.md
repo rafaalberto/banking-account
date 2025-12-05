@@ -280,10 +280,10 @@ Behavior depends on the **type** field.
 ---
 
 ## 📌 Next Steps (WIP Roadmap)
-- Add concurrency-safe operations
-- Implement database-level locking
-- Add DataSource & connection pooling
-- Expand test coverage (integration + concurrency)
+- Add concurrency-safe operations ✅
+- Implement database-level locking ✅
+- Add DataSource & connection pooling ✅
+- Expand test coverage (integration + concurrency) ✅
 - Improve error handling and validation
 - Containerize the application (Docker)
 
