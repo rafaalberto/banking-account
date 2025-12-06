@@ -1,6 +1,5 @@
-# Banking Account API — Refactored in 2025
+# 🏦 Banking Account API — Refactored in 2025
 
-## Status & Technology Badges
 [![CI](https://github.com/rafaalberto/banking-account/actions/workflows/ci.yml/badge.svg)](https://github.com/rafaalberto/banking-account/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Build](https://img.shields.io/badge/Build-Gradle-02303A.svg?logo=gradle)
@@ -8,127 +7,154 @@
 
 ---
 
-## Overview
+A lightweight, framework-free banking API originally developed in **2019** for a *fintech interview challenge*, and fully refactored in **2025** to demonstrate modern backend engineering practices — including concurrency safety, transactional integrity, clean architecture, and robust testing.
 
-This project was originally developed in **2019** as part of a coding challenge for **Revolut**.  
-In **2025**, it is undergoing a full refactor focused on concurrency safety, transactional integrity, clean architecture, and robust testing.
-
-This repository serves as both an **engineering case study** and a **progressive refactor**, showcasing how a legacy codebase evolves into a modern and production-ready design.
+This repository serves as a **professional engineering case study**, showing how a legacy codebase evolves into a maintainable, testable, and production-grade backend service.
 
 ---
 
-## ✨ Features
+# 📘 Overview
+
+The original 2019 implementation met functional requirements but had several architectural and concurrency limitations typical of early-stage backend designs:
+
+- No thread-safety or state isolation
+- Race conditions in financial operations
+- Lack of transactional guarantees
+- Weak test coverage
+- DAO tightly coupled with business logic
+
+In **2025**, this project was rebuilt from the ground up using Java 21 and clean architectural principles.
+
+---
+
+# 🛠️ Evolution of This Project
+
+### 📅 2019 — Initial Implementation
+A functional banking API built without heavy frameworks, focusing on Java fundamentals and correctness. However, several issues existed:
+
+- Shared, thread-unsafe JDBC connection
+- Missing transactional rollback on multi-step operations
+- Race conditions on deposits, withdrawals, and transfers
+- Architecture lacking modularity
+- No integration or concurrency tests
+
+---
+
+### 🚀 2025 — Full Refactor
+
+After years working on mission-critical fintech systems and distributed architectures, the project was revisited with the goal of elevating it to **senior-level engineering standards**.
+
+**Refactor Objectives:**
+
+1. Enforce concurrency safety and proper synchronization
+2. Introduce pessimistic locking with `SELECT FOR UPDATE`
+3. Improve separation of concerns and domain structure
+4. Add integration + concurrency test suites
+5. Modernize with Java 21 features
+6. Provide production-quality project organization
+
+This repository now represents both a **technical showcase** and an **educational platform**.
+
+---
+
+# ✨ Features
 
 - Lightweight REST API using Undertow (no heavy frameworks)
-- Thread-safe handling of financial operations
-- Proper transactional boundaries with rollback
-- In-memory H2 database for fast integration testing
-- SOLID principles
-- Full refactor moving toward dependency injection and structured logging
+- Thread-safe financial operations
+- Pessimistic locking for isolation
+- Transactional rollback for multi-step flows
+- Clean layering: Controller → Service → DAO
+- H2 in-memory database for fast, reliable testing
+- Java 21 modern syntax and patterns
 
 ---
 
-## 🎯 Project Goals (2025)
+# 🎯 Project Goals (2025)
 
-- Modernize the 2019 codebase using Java 21
-- Introduce concurrency-safe transaction handling
-- Improve separation of concerns and eliminate architecture anti-patterns
-- Provide comprehensive test coverage
-- Deliver a template-quality codebase for educational and professional purposes
+- Transform the 2019 codebase using modern engineering
+- Resolve concurrency issues at the architectural level
+- Improve domain structure and separation of responsibilities
+- Deliver robust testing with integration + concurrency focus
+- Provide a template-grade backend service
 
 ---
 
-## 🧱 Tech Stack
+# 🧱 Tech Stack
 
 - **Java 21**
-- **Undertow (Embedded Web Server)**
+- **Undertow**
 - **JDBC + H2 Database**
 - **Gradle**
-- **JUnit 5**, **REST Assured**
-- **Docker** (optional execution)
+- **JUnit 5** · **REST Assured**
+- **Docker** (optional)
 
 ---
 
-## 🔄 Refactor 2025 — Improvements
+# 🔄 Refactor 2025 — Detailed Improvements
 
-### Key Issues Identified in the 2019 Version
-- Race conditions in transfers, deposits, and withdrawals
-- Shared singleton JDBC connection (thread-unsafe)
-- Missing rollback in multi-step operations
-- DAO violating separation of concerns
-- Poor locking strategy (`synchronized(this)`)
-- No concurrency or integration testing
-
-### Fixes Implemented in 2025 *(WIP)*
-- Upgraded to **Java 21**
-- Improved foundation for dependency injection
-- Introduced connection pooling
-- Added pessimistic row locking via `SELECT FOR UPDATE`
-- Extracted DAO responsibilities
-- Added project documentation
-- Added integration + concurrency tests
-
-### Upcoming Improvements
-- Add structured logs and exception hierarchy
-- The `Account` entity will be refactored into an **immutable model**.
+### 🚨 Issues Identified (2019)
+- Race conditions in financial operations
+- Singleton shared connection (thread-unsafe)
+- No rollback / partial state commits
+- Business logic leaking into DAO layer
+- Weak synchronization strategy
+- Missing integration and concurrency testing
 
 ---
 
-## ▶ Running the Application
-
-You may run the application **locally** or through **Docker**.  
-Docker is the recommended approach for consistency and portability.
+### 🛠 Fixes Implemented
+- ✔ Migrated to Java 21
+- ✔ Added connection pooling
+- ✔ Implemented pessimistic row locking
+- ✔ Refactored layers into clean architecture
+- ✔ Added integration + concurrency test suites
+- ✔ Improved documentation and structure
 
 ---
 
-### Option A — Run Locally
+### 🔮 Upcoming
+- Structured logging
+- Custom exception hierarchy
+- Immutable `Account` domain model
+
+---
+
+# ▶️ Running the Application
+
+## Option A — Run Locally
 
 Build:
-
 ```bash
 ./gradlew clean build
 ```
 
 Run:
-
 ```bash
 java -jar build/libs/banking-account.jar
 ```
 
-Access the API at:
-
+Access:
 ```
 http://localhost:8080
 ```
 
 ---
 
-### Option B — Run with Docker (Recommended)
+## Option B — Run with Docker (Recommended)
 
-#### 1) Build the Docker Image
-
+Build:
 ```bash
 docker build -t banking-account:latest .
 ```
 
-Optional semantic versioning:
-
-```bash
-docker build -t banking-account:1.0.0 .
-```
-
----
-
-#### 2) Run the Container
-
+Run:
 ```bash
 docker run -d -p 8080:8080 --name banking-account banking-account:latest
 ```
 
 ---
 
-## 🧪 Running Tests
-
+# 🧪 Running Tests
 ```bash
 ./gradlew test
 ./gradlew integrationTest
@@ -136,21 +162,30 @@ docker run -d -p 8080:8080 --name banking-account banking-account:latest
 
 ---
 
-## 📐 Architecture Overview
+# 📐 Architecture Overview
 
 ```
-REST Controller → Service Layer → DAO → H2 Database
+REST Controller
+        ↓
+  Service Layer
+        ↓
+       DAO
+        ↓
+    H2 Database
 ```
+
+A minimal, clean architecture focused on readability, correctness, and maintainability.
 
 ---
 
-## 🤝 Contributing
-
-Contributions and suggestions are welcome as development continues.
+# 🤝 Contributing
+Suggestions and contributions are welcome as development continues.
 
 ---
 
-## ⭐ Final Notes
+# ⭐ Final Notes
 
-This repository serves as both an educational reference and an evolving engineering case study.
-Additional improvements will be introduced progressively as the refactor advances.
+This repository demonstrates not only how a project evolves —  
+but how an **engineer evolves**.
+
+More improvements coming soon.
