@@ -91,7 +91,7 @@ public class TransactionServiceTest {
     @Test
     public void shouldWithdrawSuccessfully() {
         Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
-        account.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
         withdrawService.execute(transaction);
     }
@@ -99,7 +99,7 @@ public class TransactionServiceTest {
     @Test
     public void shouldDenyWithdrawWithDifferentAccounts() {
         Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
-        account.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
@@ -109,7 +109,7 @@ public class TransactionServiceTest {
     @Test
     public void shouldDenyWithdrawWithAmountZero() {
         Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(BigDecimal.ZERO), WITHDRAW);
-        account.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
@@ -119,7 +119,7 @@ public class TransactionServiceTest {
     @Test
     public void shouldDenyWithdrawWithInsufficientFunds() {
         Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
-        account.setBalance(convertTwoDecimalPlace(new BigDecimal(500)));
+        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(500)));
         Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->

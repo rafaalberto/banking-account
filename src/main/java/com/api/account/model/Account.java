@@ -4,52 +4,42 @@ import java.math.BigDecimal;
 
 import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
 
-public class Account {
+public record Account(Long id, String name, BigDecimal balance) {
 
-    private Long id;
-    private String name;
-    private BigDecimal balance = BigDecimal.ZERO;
-
-    public Account() {
+    public Account {
+        balance = convertTwoDecimalPlace(balance != null ? balance : BigDecimal.ZERO);
     }
 
     public Account(String name) {
-        this.name = name;
+        this(null, name, BigDecimal.ZERO);
     }
 
     public Account(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public Account(Long id, String name, BigDecimal balance) {
-        this.id = id;
-        this.name = name;
-        this.balance = balance;
+        this(id, name, BigDecimal.ZERO);
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public BigDecimal getBalance() {
-        return convertTwoDecimalPlace(balance);
+        return balance;
     }
 
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
+    public Account withId(Long newId) {
+        return new Account(newId, this.name, this.balance);
     }
-    
+
+    public Account withName(String newName) {
+        return new Account(this.id, newName, this.balance);
+    }
+
+    public Account withBalance(BigDecimal newBalance) {
+        return new Account(this.id, this.name, newBalance);
+    }
+
 }

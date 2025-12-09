@@ -46,7 +46,7 @@ public class AccountResource {
                 Account account = readFromJson(message, new TypeReference<>() {
                 });
                 if (account != null) {
-                    account.setId(Long.valueOf(id));
+                    account = account.withId(Long.valueOf(id));
                     account = accountService.save(account);
                     exchange.getResponseSender().send(convertToJson(account));
                 }

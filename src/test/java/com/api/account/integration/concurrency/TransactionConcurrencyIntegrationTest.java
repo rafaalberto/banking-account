@@ -65,7 +65,7 @@ class TransactionConcurrencyIntegrationTest {
     @Test
     void shouldHandleConcurrentDeposits() throws InterruptedException {
         Account account = accountDao.insert(new Account("Mary"));
-        account.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         balanceDao.updateBalance(account, transactionContext);
 
         Long accountId = account.getId();
@@ -133,7 +133,7 @@ class TransactionConcurrencyIntegrationTest {
     @Test
     void shouldHandleConcurrentWithdrawals() throws InterruptedException {
         Account account = accountDao.insert(new Account("Mary"));
-        account.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         balanceDao.updateBalance(account, transactionContext);
 
         Long accountId = account.getId();
@@ -189,11 +189,11 @@ class TransactionConcurrencyIntegrationTest {
     @Test
     void shouldHandleConcurrentTransfers() throws InterruptedException {
         Account accountA = accountDao.insert(new Account("AccountA"));
-        accountA.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        accountA = accountA.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         balanceDao.updateBalance(accountA, transactionContext);
 
         Account accountB = accountDao.insert(new Account("AccountB"));
-        accountB.setBalance(convertTwoDecimalPlace(new BigDecimal(500)));
+        accountB = accountB.withBalance(convertTwoDecimalPlace(new BigDecimal(500)));
         balanceDao.updateBalance(accountB, transactionContext);
 
         Long accountAId = accountA.getId();
@@ -272,11 +272,11 @@ class TransactionConcurrencyIntegrationTest {
     @Test
     void shouldPreventDeadlocks() throws InterruptedException {
         Account accountA = accountDao.insert(new Account("AccountA"));
-        accountA.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        accountA = accountA.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         balanceDao.updateBalance(accountA, transactionContext);
 
         Account accountB = accountDao.insert(new Account("AccountB"));
-        accountB.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        accountB = accountB.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         balanceDao.updateBalance(accountB, transactionContext);
 
         Long accountAId = accountA.getId();

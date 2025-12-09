@@ -108,7 +108,7 @@ public class TransactionResourceIntegrationTest {
     @Test
     public void shouldWithdrawSuccessfully() {
         Account accountInserted = insertAccount(new Account("Mary"));
-        accountInserted.setBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
+        accountInserted = accountInserted.withBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
         updateBalance(accountInserted, transactionContext);
 
         Transaction transaction = new Transaction(accountInserted.getId(), accountInserted.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
@@ -142,11 +142,11 @@ public class TransactionResourceIntegrationTest {
     @Test
     public void shouldTransferSuccessfully() {
         Account accountSender = insertAccount(new Account("Mary"));
-        accountSender.setBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
+        accountSender = accountSender.withBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
         updateBalance(accountSender, transactionContext);
 
         Account accountReceiver = insertAccount(new Account("Rafael"));
-        accountReceiver.setBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+        accountReceiver = accountReceiver.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
         updateBalance(accountReceiver, transactionContext);
 
         Transaction transaction = new Transaction(accountSender.getId(), accountReceiver.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
@@ -165,7 +165,7 @@ public class TransactionResourceIntegrationTest {
     @Test
     public void shouldDenyTransferWithSameAccount() {
         Account accountSender = insertAccount(new Account("Mary"));
-        accountSender.setBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
+        accountSender = accountSender.withBalance(convertTwoDecimalPlace(new BigDecimal(2000)));
         updateBalance(accountSender, transactionContext);
 
         Transaction transaction = new Transaction(accountSender.getId(), accountSender.getId(), convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
