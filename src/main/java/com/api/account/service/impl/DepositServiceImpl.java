@@ -35,7 +35,7 @@ public class DepositServiceImpl implements TransactionService {
             transactionManager.executeInTransaction(transactionContext -> {
                 Account account = accountService.findByIdWithLock(accountId, transactionContext);
                 verifyData(transaction);
-                account.setBalance(deposit(account.getBalance(), transaction.getAmount()));
+                account = account.withBalance(deposit(account.getBalance(), transaction.getAmount()));
                 balanceService.updateBalance(account, transactionContext);
                 return null;
             });

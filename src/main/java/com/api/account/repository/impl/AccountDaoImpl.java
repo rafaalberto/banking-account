@@ -24,7 +24,7 @@ public class AccountDaoImpl implements AccountDao {
 
                 var rowsAffected = preparedStatement.executeUpdate();
 
-                account.setId(getGeneratedId(preparedStatement, rowsAffected));
+                account = account.withId(getGeneratedId(preparedStatement, rowsAffected));
 
             }
 
@@ -69,10 +69,10 @@ public class AccountDaoImpl implements AccountDao {
                  PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()) {
-                    Account account = new Account();
-                    account.setId(resultSet.getLong("id"));
-                    account.setName(resultSet.getString("name"));
-                    account.setBalance(resultSet.getBigDecimal("balance"));
+                    Account account = new Account(
+                    resultSet.getLong("id"),
+                    resultSet.getString("name"),
+                    resultSet.getBigDecimal("balance"));
                     accounts.add(account);
                 }
             }
@@ -91,10 +91,10 @@ public class AccountDaoImpl implements AccountDao {
                 preparedStatement.setLong(1, id);
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()) {
-                    account = new Account();
-                    account.setId(resultSet.getLong("id"));
-                    account.setName(resultSet.getString("name"));
-                    account.setBalance(resultSet.getBigDecimal("balance"));
+                    account = new Account(
+                    resultSet.getLong("id"),
+                    resultSet.getString("name"),
+                    resultSet.getBigDecimal("balance"));
                 }
             }
             return account;
@@ -111,10 +111,10 @@ public class AccountDaoImpl implements AccountDao {
             preparedStatement.setLong(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                account = new Account();
-                account.setId(resultSet.getLong("id"));
-                account.setName(resultSet.getString("name"));
-                account.setBalance(resultSet.getBigDecimal("balance"));
+                account = new Account(
+                resultSet.getLong("id"),
+                resultSet.getString("name"),
+                resultSet.getBigDecimal("balance"));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to find account with lock: " + id, e);

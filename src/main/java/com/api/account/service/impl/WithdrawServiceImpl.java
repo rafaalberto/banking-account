@@ -34,7 +34,7 @@ public class WithdrawServiceImpl implements TransactionService {
             transactionManager.executeInTransaction(transactionContext -> {
                 Account account = accountService.findByIdWithLock(accountId, transactionContext);
                 verifyData(transaction);
-                account.setBalance(withdraw(account.getBalance(), transaction.getAmount()));
+                account = account.withBalance(withdraw(account.getBalance(), transaction.getAmount()));
                 balanceService.updateBalance(account, transactionContext);
                 return null;
             });

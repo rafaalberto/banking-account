@@ -47,8 +47,8 @@ public class TransferServiceImpl implements TransactionService {
 
                     verifyData(transaction);
 
-                    accountSender.setBalance(withdraw(accountSender.getBalance(), transaction.getAmount()));
-                    accountReceiver.setBalance(deposit(accountReceiver.getBalance(), transaction.getAmount()));
+                    accountSender = accountSender.withBalance(withdraw(accountSender.getBalance(), transaction.getAmount()));
+                    accountReceiver = accountReceiver.withBalance(deposit(accountReceiver.getBalance(), transaction.getAmount()));
 
                     balanceService.updateBalancesForTransfer(accountSender, accountReceiver, transactionContext);
                     return null;

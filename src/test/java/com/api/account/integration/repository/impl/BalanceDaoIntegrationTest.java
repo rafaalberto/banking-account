@@ -42,7 +42,7 @@ public class BalanceDaoIntegrationTest {
     @Test
     public void shouldUpdateBalance() {
         Account accountInserted = accountDao.insert(new Account("Mary"));
-        accountInserted.setBalance(new BigDecimal(2000));
+        accountInserted = accountInserted.withBalance(new BigDecimal(2000));
 
         Account accountBalanceUpdated = balanceDao.updateBalance(accountInserted, transactionContext);
 
@@ -60,14 +60,14 @@ public class BalanceDaoIntegrationTest {
 
     private Account accountDeposit(String rafael, BigDecimal amount) {
         Account accountSender = accountDao.insert(new Account(rafael));
-        accountSender.setBalance(deposit(accountSender.getBalance(), amount));
+        accountSender = accountSender.withBalance(deposit(accountSender.getBalance(), amount));
         accountSender = balanceDao.updateBalance(accountSender, transactionContext);
         return accountSender;
     }
 
     private void accountTransfer(Account accountSender, Account accountReceiver, BigDecimal amount) {
-        accountSender.setBalance(withdraw(accountSender.getBalance(), amount));
-        accountReceiver.setBalance(deposit(accountReceiver.getBalance(), amount));
+        accountSender = accountSender.withBalance(withdraw(accountSender.getBalance(), amount));
+        accountReceiver = accountReceiver.withBalance(deposit(accountReceiver.getBalance(), amount));
         balanceDao.updateBalancesForTransfer(accountSender, accountReceiver, transactionContext);
     }
 

@@ -51,10 +51,7 @@ public class AccountServiceImpl implements AccountService {
             verifyBalanceAmount(account);
             return accountDao.insert(account);
         }else {
-            account = accountDao.update(account);
-            /* In this case the balance is not updated, so it is necessary to get real balance from database,
-                    because balance just need can modified using transactions service */
-            return accountDao.findById(account.getId());
+            return accountDao.update(account);
         }
     }
 
@@ -62,7 +59,6 @@ public class AccountServiceImpl implements AccountService {
     public void delete(Long id) {
         Account account = findById(id);
         accountDao.delete(account.getId());
-        // Clean up the lock to prevent memory leak
         removeLock(id);
     }
 

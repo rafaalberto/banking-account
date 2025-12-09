@@ -59,10 +59,10 @@ public class AccountServiceTest {
     @Test
     public void shouldDenyCreateAccountIfBalanceGreaterThanZero() {
         Account accountToCreate = new Account( "Rafael");
-        accountToCreate.setBalance(convertTwoDecimalPlace(new BigDecimal(3000)));
+        final Account accountWithBalance = accountToCreate.withBalance(convertTwoDecimalPlace(new BigDecimal(3000)));
 
         assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                accountService.save(accountToCreate)).withMessage("Balance is not allowed to be saved for this operation");
+                accountService.save(accountWithBalance)).withMessage("Balance is not allowed to be saved for this operation");
     }
 
     @Test
@@ -81,16 +81,16 @@ public class AccountServiceTest {
     public void shouldUpdateAccountSuccessfullyWithBalance() {
 
         /* This account already has 3000 in balance */
-        account.setBalance(convertTwoDecimalPlace(new BigDecimal(3000)));
+        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(3000)));
         when(accountDao.findById(1L)).thenReturn(account);
 
         /* even if we put the balance to update, the app will not do that,
         because only transactions operations are allowed to do it */
         Account accountToUpdate = new Account(1L, "John");
-        accountToUpdate.setBalance(new BigDecimal(5000));
+        accountToUpdate = accountToUpdate.withBalance(new BigDecimal(5000));
 
         Account accountUpdated = new Account(1L, "John");
-        accountUpdated.setBalance(convertTwoDecimalPlace(new BigDecimal(3000)));
+        accountUpdated = accountUpdated.withBalance(convertTwoDecimalPlace(new BigDecimal(3000)));
         when(accountDao.update(accountToUpdate)).thenReturn(accountUpdated);
         when(accountDao.findById(1L)).thenReturn(accountUpdated);
 
