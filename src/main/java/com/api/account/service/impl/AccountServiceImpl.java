@@ -41,7 +41,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account findByIdWithLock(Long id, TransactionContext transactionContext) {
-        return accountDao.findByIdWithLock(id, transactionContext);
+        Account account = accountDao.findByIdWithLock(id, transactionContext);
+        if (account == null) {
+            throw new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found");
+        }
+        return account;
     }
 
     @Override
