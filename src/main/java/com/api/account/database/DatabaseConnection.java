@@ -1,5 +1,6 @@
 package com.api.account.database;
 
+import com.api.account.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ public class DatabaseConnection {
             statement.executeUpdate(CREATE_TABLE_ACCOUNTS);
         } catch (SQLException e) {
             LOGGER.error("Failed to connect to database", e);
-            throw new RuntimeException("Database connection failed", e);
+            throw new DataAccessException("Database connection failed", e);
         }
     }
 

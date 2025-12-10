@@ -7,7 +7,6 @@ import com.api.account.exception.DataAccessException;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
 
-import java.math.BigInteger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,7 @@ public class AccountDaoImpl implements AccountDao {
 
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException("Error to insert", e);
+            throw new DataAccessException("Failed to insert account: " + account.getName(), e);
         }
     }
 
@@ -45,7 +44,7 @@ public class AccountDaoImpl implements AccountDao {
             }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException("Error to update", e);
+            throw new DataAccessException("Failed to update account with id: " + account.getId(), e);
         }
     }
 
@@ -57,7 +56,7 @@ public class AccountDaoImpl implements AccountDao {
                 preparedStatement.execute();
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error to delete", e);
+            throw new DataAccessException("Failed to delete account with id: " + id, e);
         }
     }
 
@@ -78,7 +77,7 @@ public class AccountDaoImpl implements AccountDao {
             }
             return accounts;
         } catch (SQLException e) {
-            throw new RuntimeException("Error to select", e);
+            throw new DataAccessException("Failed to retrieve all accounts", e);
         }
     }
 
@@ -99,7 +98,7 @@ public class AccountDaoImpl implements AccountDao {
             }
             return account;
         } catch (SQLException e) {
-            throw new RuntimeException("Error to find", e);
+            throw new DataAccessException("Failed to find account with id: " + id, e);
         }
     }
 
@@ -120,21 +119,20 @@ public class AccountDaoImpl implements AccountDao {
             throw new DataAccessException("Failed to find account with lock: " + id, e);
         }
 
-        if (account == null) {
-            throw new DataAccessException("Account not found with id: " + id);
-        }
         return account;
     }
 
 
-    private Long getGeneratedId(PreparedStatement preparedStatement, int rowsAffected) throws SQLException {
-        if (rowsAffected > BigInteger.ZERO.intValue()) {
+    private Long getGeneratedId(PreparedStatement preparedStatement, int rowsAffected) {
+        if (rowsAffected > 0) {
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getLong(1);
                 } else {
-                    throw new SQLException("Operation failed no ID obtained");
+                    throw new DataAccessException("Failed to obtain generated ID after insert operation");
                 }
+            } catch (SQLException e) {
+                throw new DataAccessException("Failed to retrieve generated ID", e);
             }
         }
         return null;
