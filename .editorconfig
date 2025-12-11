@@ -1,0 +1,81 @@
+# Root EditorConfig file for consistent style across editors
+root = true
+
+# ============================================
+# Global defaults (apply to all files)
+# ============================================
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# ============================================
+# Java (Java 17/21+ style)
+# ============================================
+[*.java]
+indent_style = space
+indent_size = 4
+continuation_indent_size = 8
+max_line_length = 120
+tab_width = 4
+
+# Keep multi-line Java 21 features aligned:
+# - pattern matching
+# - record components
+# - sealed class hierarchies
+# - switch expressions
+ij_continuation_indent_for_chained_methods = true
+ij_continuation_indent_for_binary_operations = true
+ij_continuation_indent_for_expressions = true
+
+# Keep imports clean and minimal
+ij_java_imports_layout = sorted
+ij_java_class_count_to_use_import_on_demand = 9999
+ij_java_names_count_to_use_import_on_demand = 9999
+
+# Text blocks (Java 21) should not be auto-wrapped
+ij_java_keep_line_breaks = true
+
+# Spaces around language features
+ij_java_space_before_if_parentheses = true
+ij_java_space_before_for_parentheses = true
+ij_java_space_before_while_parentheses = true
+ij_java_space_before_switch_parentheses = true
+
+# Disable wrapping inside records and pattern matching expressions
+ij_java_wrap_long_lines = false
+
+# ============================================
+# JSON / YAML
+# ============================================
+[*.json]
+indent_size = 2
+
+[*.yml]
+indent_size = 2
+
+[*.yaml]
+indent_size = 2
+
+# ============================================
+# Markdown
+# ============================================
+[*.md]
+max_line_length = off
+
+# ============================================
+# XML / HTML
+# ============================================
+[*.xml]
+indent_size = 2
+
+[*.html]
+indent_size = 2
+
+# ============================================
+# Properties files
+# ============================================
+[*.properties]
+indent_style = space
+indent_size = 2

@@ -162,6 +162,81 @@ docker run -d -p 8080:8080 --name banking-account banking-account:latest
 
 ---
 
+# 🔍 Code Quality & Linting
+
+This project uses a multi-tool approach to ensure code quality and consistency:
+
+## Tools
+
+- **Spotless** (Google Java Format) - Automatic code formatting
+- **Checkstyle** - Static code analysis and quality checks
+- **EditorConfig** - Editor-agnostic formatting rules
+
+## Workflow
+
+### Before Committing
+
+1. **Format your code:**
+   ```bash
+   ./gradlew spotlessApply
+   ```
+   This will automatically format your code according to Google Java Format standards.
+
+2. **Check for issues:**
+   ```bash
+   ./gradlew check
+   ```
+   This runs:
+   - `spotlessCheck` - Verifies code formatting
+   - `checkstyleMain` & `checkstyleTest` - Static analysis
+   - `test` & `integrationTest` - All tests
+
+### Individual Checks
+
+```bash
+# Check formatting only
+./gradlew spotlessCheck
+
+# Apply formatting
+./gradlew spotlessApply
+
+# Check code quality only
+./gradlew checkstyleMain checkstyleTest
+```
+
+### View Reports
+
+- **Checkstyle HTML Report:** `build/reports/checkstyle/checkstyle.html`
+- **Test Reports:** `build/reports/tests/`
+
+## Configuration
+
+- **Checkstyle:** `config/checkstyle/checkstyle.xml`
+  - Focuses on code quality (complexity, naming, best practices)
+  - Style formatting is handled by Spotless to avoid conflicts
+
+- **Spotless:** Configured in `build.gradle`
+  - Uses Google Java Format 1.17.0
+  - Removes unused imports
+  - Trims trailing whitespace
+  - Ensures newline at end of file
+
+- **EditorConfig:** `.editorconfig`
+  - Ensures consistent editor settings across IDEs
+  - 120 character line length
+  - 4-space indentation for Java
+
+## CI/CD Integration
+
+The build will **fail** if:
+- Code is not properly formatted (Spotless)
+- Code quality violations are found (Checkstyle)
+- Tests fail
+
+This ensures all code meets quality standards before merging.
+
+---
+
 # 📐 Architecture Overview
 
 ```
