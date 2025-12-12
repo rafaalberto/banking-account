@@ -6,143 +6,147 @@ import com.api.account.database.impl.TransactionContextImpl;
 import com.api.account.exception.DataAccessException;
 import com.api.account.model.Account;
 import com.api.account.repository.AccountDao;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AccountDaoImpl implements AccountDao {
 
-    public Account insert(Account account) {
-        String sql = "insert into accounts (name, balance) values (?, ?)";
-        try {
-            try (Connection connection = ConnectionFactory.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                preparedStatement.setString(1, account.getName());
-                preparedStatement.setBigDecimal(2, account.getBalance());
+  public Account insert(final Account account) {
+    String sql = "insert into accounts (name, balance) values (?, ?)";
+    Account result = account;
 
-                var rowsAffected = preparedStatement.executeUpdate();
+    try (Connection connection = ConnectionFactory.getConnection();
+        PreparedStatement preparedStatement =
+            connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-                account = account.withId(getGeneratedId(preparedStatement, rowsAffected));
+      preparedStatement.setString(1, account.getName());
+      preparedStatement.setBigDecimal(2, account.getBalance());
 
-            }
-
-            return account;
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to insert account: " + account.getName(), e);
-        }
+      var rowsAffected = preparedStatement.executeUpdate();
+      result = account.withId(getGeneratedId(preparedStatement, rowsAffected));
+      return result;
+    } catch (SQLException e) {
+      throw new DataAccessException("Failed to insert account: " + account.getName(), e);
     }
+  }
 
-    public Account update(Account account) {
-        String sql = "update accounts set name = ? where id = ?";
-        try {
-            try (Connection connection = ConnectionFactory.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setString(1, account.getName());
-                preparedStatement.setLong(2, account.getId());
-                preparedStatement.execute();
-            }
-            return account;
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to update account with id: " + account.getId(), e);
-        }
+  public Account update(final Account account) {
+    String sql = "update accounts set name = ? where id = ?";
+    try {
+      try (Connection connection = ConnectionFactory.getConnection();
+          PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setString(1, account.getName());
+        preparedStatement.setLong(2, account.getId());
+        preparedStatement.execute();
+      }
+      return account;
+    } catch (SQLException e) {
+      throw new DataAccessException("Failed to update account with id: " + account.getId(), e);
     }
+  }
 
-    public void delete(Long id) {
-        try {
-            try (Connection connection = ConnectionFactory.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement("delete from accounts where id = ?")) {
-                preparedStatement.setLong(1, id);
-                preparedStatement.execute();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to delete account with id: " + id, e);
-        }
+  public void delete(final Long id) {
+    try {
+      try (Connection connection = ConnectionFactory.getConnection();
+          PreparedStatement preparedStatement =
+              connection.prepareStatement("delete from accounts where id = ?")) {
+        preparedStatement.setLong(1, id);
+        preparedStatement.execute();
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Failed to delete account with id: " + id, e);
     }
+  }
 
-    public List<Account> findAll() {
-        String sql = "select * from accounts";
-        try {
-            List<Account> accounts = new ArrayList<>();
-            try (Connection connection = ConnectionFactory.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while (resultSet.next()) {
-                    Account account = new Account(
-                    resultSet.getLong("id"),
-                    resultSet.getString("name"),
-                    resultSet.getBigDecimal("balance"));
-                    accounts.add(account);
-                }
-            }
-            return accounts;
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to retrieve all accounts", e);
+  public List<Account> findAll() {
+    String sql = "select * from accounts";
+    try {
+      List<Account> accounts = new ArrayList<>();
+      try (Connection connection = ConnectionFactory.getConnection();
+          PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        ResultSet resultSet = preparedStatement.executeQuery();
+        while (resultSet.next()) {
+          Account account =
+              new Account(
+                  resultSet.getLong("id"),
+                  resultSet.getString("name"),
+                  resultSet.getBigDecimal("balance"));
+          accounts.add(account);
         }
+      }
+      return accounts;
+    } catch (SQLException e) {
+      throw new DataAccessException("Failed to retrieve all accounts", e);
     }
+  }
 
-    public Account findById(Long id) {
-        String sql = "select * from accounts where id = ?";
-        try {
-            Account account = null;
-            try (Connection connection = ConnectionFactory.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setLong(1, id);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while (resultSet.next()) {
-                    account = new Account(
-                    resultSet.getLong("id"),
-                    resultSet.getString("name"),
-                    resultSet.getBigDecimal("balance"));
-                }
-            }
-            return account;
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to find account with id: " + id, e);
+  public Account findById(final Long id) {
+    String sql = "select * from accounts where id = ?";
+    try {
+      Account account = null;
+      try (Connection connection = ConnectionFactory.getConnection();
+          PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setLong(1, id);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        while (resultSet.next()) {
+          account =
+              new Account(
+                  resultSet.getLong("id"),
+                  resultSet.getString("name"),
+                  resultSet.getBigDecimal("balance"));
         }
+      }
+      return account;
+    } catch (SQLException e) {
+      throw new DataAccessException("Failed to find account with id: " + id, e);
     }
+  }
 
-    public Account findByIdWithLock(Long id, TransactionContext context) {
-        Connection connection = getConnection(context);
-        String sql = "SELECT * FROM accounts WHERE id = ? FOR UPDATE";
-        Account account = null;
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                account = new Account(
+  public Account findByIdWithLock(final Long id, final TransactionContext context) {
+    Connection connection = getConnection(context);
+    String sql = "SELECT * FROM accounts WHERE id = ? FOR UPDATE";
+    Account account = null;
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setLong(1, id);
+      ResultSet resultSet = preparedStatement.executeQuery();
+      while (resultSet.next()) {
+        account =
+            new Account(
                 resultSet.getLong("id"),
                 resultSet.getString("name"),
                 resultSet.getBigDecimal("balance"));
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to find account with lock: " + id, e);
-        }
-
-        return account;
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Failed to find account with lock: " + id, e);
     }
 
+    return account;
+  }
 
-    private Long getGeneratedId(PreparedStatement preparedStatement, int rowsAffected) {
-        if (rowsAffected > 0) {
-            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getLong(1);
-                } else {
-                    throw new DataAccessException("Failed to obtain generated ID after insert operation");
-                }
-            } catch (SQLException e) {
-                throw new DataAccessException("Failed to retrieve generated ID", e);
-            }
+  private Long getGeneratedId(final PreparedStatement preparedStatement, final int rowsAffected) {
+    if (rowsAffected > 0) {
+      try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+        if (generatedKeys.next()) {
+          return generatedKeys.getLong(1);
+        } else {
+          throw new DataAccessException("Failed to obtain generated ID after insert operation");
         }
-        return null;
+      } catch (SQLException e) {
+        throw new DataAccessException("Failed to retrieve generated ID", e);
+      }
     }
+    return null;
+  }
 
-    private Connection getConnection(TransactionContext context) {
-        if (context instanceof TransactionContextImpl) {
-            return ((TransactionContextImpl) context).getConnection();
-        }
-        throw new IllegalArgumentException("Invalid transaction context");
+  private Connection getConnection(final TransactionContext context) {
+    if (context instanceof TransactionContextImpl) {
+      return ((TransactionContextImpl) context).getConnection();
     }
-
+    throw new IllegalArgumentException("Invalid transaction context");
+  }
 }

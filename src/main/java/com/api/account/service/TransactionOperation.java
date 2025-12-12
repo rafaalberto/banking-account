@@ -4,5 +4,5 @@ import com.api.account.database.TransactionContext;
 
 @FunctionalInterface
 public interface TransactionOperation<T> {
-    T execute(TransactionContext transactionContext);
+  T execute(TransactionContext transactionContext);
 }

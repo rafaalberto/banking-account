@@ -2,12 +2,11 @@ package com.api.account.exception;
 
 public class TransactionException extends RuntimeException {
 
-    public TransactionException(String message) {
-        super(message);
-    }
+  public TransactionException(final String message) {
+    super(message);
+  }
 
-    public TransactionException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  public TransactionException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

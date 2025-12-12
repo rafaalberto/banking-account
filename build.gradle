@@ -1,5 +1,23 @@
 plugins {
     id 'java'
+    id 'checkstyle'
+    id 'com.diffplug.spotless' version '6.23.0'
+    // optionally: id 'com.github.johnrengelman.shadow' version '8.1.1' // recommended for fat jars
+}
+
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+spotless {
+    java {
+        googleJavaFormat('1.17.0')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+        target 'src/**/*.java'
+    }
 }
 
 ext {
@@ -36,15 +54,35 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation "com.h2database:h2:${h2DatabaseVersion}"
     implementation "com.zaxxer:HikariCP:${hikariCPVersion}"
+
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-    implementation "org.slf4j:slf4j-simple:${slf4jVersion}"
+    // For local/dev/testing you can keep slf4j-simple, but prefer a production binding (e.g. logback-classic)
+    implementation "org.slf4j:slf4j-simple:${slf4jVersion}" // TODO: consider replacing with logback-classic
+
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
+
     testImplementation "org.junit.jupiter:junit-jupiter:${junitJupiterVersion}"
     testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformLauncher}"
     testImplementation "org.assertj:assertj-core:${assertVersion}"
-    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation "io.rest-assured:rest-assured:${restAssuredVersion}"
+}
+
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = false
+        html.required = true
+        html.outputLocation = file("$buildDir/reports/checkstyle/checkstyle.html")
+    }
+    // keep ordering control, but do not declare dependsOn here to avoid redundant wiring
+}
+
+tasks.named('checkstyleMain') {
+    mustRunAfter 'spotlessCheck'
+}
+
+tasks.named('checkstyleTest') {
+    mustRunAfter 'spotlessCheck'
 }
 
 tasks.withType(Test).configureEach {
@@ -57,12 +95,14 @@ tasks.withType(Test).configureEach {
     }
 }
 
+// Configure unit test task
 test {
     useJUnitPlatform()
     exclude "**/integration/**"
     exclude "**/*IntegrationTest.java"
 }
 
+// Integration tests as a separate task (consider creating a separate sourceSet if you want isolation)
 tasks.register('integrationTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
@@ -73,7 +113,9 @@ tasks.register('integrationTest', Test) {
 }
 
 tasks.named('check') {
-    dependsOn('integrationTest')
+    dependsOn 'spotlessCheck'
+    dependsOn tasks.named('checkstyleMain'), tasks.named('checkstyleTest')
+    dependsOn 'integrationTest'
 }
 
 jar {
@@ -81,7 +123,6 @@ jar {
     manifest {
         attributes 'Main-Class': 'com.api.account.BankingAccountApplication'
     }
-    // Include all dependencies in the JAR (fat JAR)
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }

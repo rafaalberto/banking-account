@@ -5,7 +5,8 @@ import com.api.account.model.Account;
 
 public interface BalanceService {
 
-    void updateBalance(Account account, TransactionContext transactionContext);
+  void updateBalance(Account account, TransactionContext transactionContext);
 
-    void updateBalancesForTransfer(Account accountSender, Account accountReceiver, TransactionContext transactionContext);
+  void updateBalancesForTransfer(
+      Account accountSender, Account accountReceiver, TransactionContext transactionContext);
 }

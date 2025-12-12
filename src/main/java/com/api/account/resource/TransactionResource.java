@@ -1,5 +1,12 @@
 package com.api.account.resource;
 
+import static com.api.account.utils.HttpUtils.HTTP_CREATED_STATUS;
+import static com.api.account.utils.HttpUtils.HTTP_NOT_FOUND_STATUS;
+import static com.api.account.utils.HttpUtils.handleApplicationException;
+import static com.api.account.utils.HttpUtils.handleStatusAndHeaders;
+import static com.api.account.utils.JsonConverter.convertToJson;
+import static com.api.account.utils.JsonConverter.readFromJson;
+
 import com.api.account.exception.BusinessException;
 import com.api.account.exception.DataAccessException;
 import com.api.account.exception.TransactionException;
@@ -9,57 +16,62 @@ import com.api.account.service.TransactionFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.undertow.server.HttpServerExchange;
 
-import static com.api.account.utils.HttpUtils.*;
-import static com.api.account.utils.JsonConverter.convertToJson;
-import static com.api.account.utils.JsonConverter.readFromJson;
-
 public class TransactionResource {
 
-    private final TransactionFactory transactionFactory;
+  private final TransactionFactory transactionFactory;
 
-    public TransactionResource(TransactionFactory transactionFactory) {
-        this.transactionFactory = transactionFactory;
-    }
+  public TransactionResource(final TransactionFactory transactionFactory) {
+    this.transactionFactory = transactionFactory;
+  }
 
-    public void execute(HttpServerExchange exchange) {
-        handleStatusAndHeaders(exchange, HTTP_CREATED_STATUS);
-        exchange.getRequestReceiver().receiveFullString((serverExchange, message) -> {
-            try {
+  public void execute(final HttpServerExchange exchange) {
+    handleStatusAndHeaders(exchange, HTTP_CREATED_STATUS);
+    exchange
+        .getRequestReceiver()
+        .receiveFullString(
+            (serverExchange, message) -> {
+              try {
                 Transaction transaction = readFromJson(message, new TypeReference<>() {});
                 if (transaction != null) {
-                    var transactionType = transaction.getType();
-                    transactionFactory.getService(transactionType).execute(transaction);
-                    Message messageToSend = new Message(true, transactionType.getDescription() + " executed successfully");
-                    exchange.getResponseSender().send(convertToJson(messageToSend));
+                  var transactionType = transaction.getType();
+                  transactionFactory.getService(transactionType).execute(transaction);
+                  Message messageToSend =
+                      new Message(
+                          true, transactionType.getDescription() + " executed successfully");
+                  exchange.getResponseSender().send(convertToJson(messageToSend));
                 }
-            } catch(BusinessException e) {
+              } catch (BusinessException e) {
                 handleApplicationException(exchange, e);
-            } catch(TransactionException e) {
+              } catch (TransactionException e) {
                 // Unwrap TransactionException to check for BusinessException or DataAccessException
                 Throwable cause = e.getCause();
                 if (cause instanceof BusinessException) {
-                    // Re-throw BusinessException as-is to preserve HTTP status code
-                    handleApplicationException(exchange, (BusinessException) cause);
+                  // Re-throw BusinessException as-is to preserve HTTP status code
+                  handleApplicationException(exchange, (BusinessException) cause);
                 } else if (cause instanceof DataAccessException) {
-                    DataAccessException dataAccessException = (DataAccessException) cause;
-                    if (dataAccessException.getMessage() != null && dataAccessException.getMessage().contains("Account not found")) {
-                        handleApplicationException(exchange, new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found"));
-                    } else {
-                        handleApplicationException(exchange, e);
-                    }
-                } else {
+                  DataAccessException dataAccessException = (DataAccessException) cause;
+                  if (dataAccessException.getMessage() != null
+                      && dataAccessException.getMessage().contains("Account not found")) {
+                    handleApplicationException(
+                        exchange,
+                        new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found"));
+                  } else {
                     handleApplicationException(exchange, e);
+                  }
+                } else {
+                  handleApplicationException(exchange, e);
                 }
-            } catch(DataAccessException e) {
+              } catch (DataAccessException e) {
                 // Convert DataAccessException for "Account not found" to BusinessException with 404
                 if (e.getMessage() != null && e.getMessage().contains("Account not found")) {
-                    handleApplicationException(exchange, new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found"));
+                  handleApplicationException(
+                      exchange, new BusinessException(HTTP_NOT_FOUND_STATUS, "Account not found"));
                 } else {
-                    handleApplicationException(exchange, e);
+                  handleApplicationException(exchange, e);
                 }
-            } catch(Exception e) {
+              } catch (Exception e) {
                 handleApplicationException(exchange, e);
-            }
-        });
-    }
+              }
+            });
+  }
 }

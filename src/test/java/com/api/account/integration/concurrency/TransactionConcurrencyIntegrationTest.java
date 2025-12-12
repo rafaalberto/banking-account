@@ -1,5 +1,8 @@
 package com.api.account.integration.concurrency;
 
+import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.api.account.database.ConnectionFactory;
 import com.api.account.database.DatabaseConnection;
 import com.api.account.database.TransactionContext;
@@ -9,7 +12,6 @@ import com.api.account.model.Account;
 import com.api.account.model.Transaction;
 import com.api.account.repository.AccountDao;
 import com.api.account.repository.BalanceDao;
-import com.api.account.unit.utils.TestDatabaseUtils;
 import com.api.account.repository.impl.AccountDaoImpl;
 import com.api.account.repository.impl.BalanceDaoImpl;
 import com.api.account.service.AccountService;
@@ -19,10 +21,7 @@ import com.api.account.service.TransactionManager;
 import com.api.account.service.impl.AccountServiceImpl;
 import com.api.account.service.impl.BalanceServiceImpl;
 import com.api.account.service.impl.TransactionManagerImpl;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
+import com.api.account.unit.utils.TestDatabaseUtils;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,317 +30,312 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class TransactionConcurrencyIntegrationTest {
 
-    private AccountDao accountDao;
-    private BalanceDao balanceDao;
+  private AccountDao accountDao;
+  private BalanceDao balanceDao;
 
-    private AccountService accountService;
-    private BalanceService balanceService;
-    private TransactionManager transactionManager;
-    private TransactionFactory transactionFactory;
-    private TransactionContext transactionContext;
+  private AccountService accountService;
+  private BalanceService balanceService;
+  private TransactionManager transactionManager;
+  private TransactionFactory transactionFactory;
+  private TransactionContext transactionContext;
 
-    @BeforeEach
-    void setUp() throws SQLException {
-        DatabaseConnection.startup();
+  @BeforeEach
+  void setUp() throws SQLException {
+    DatabaseConnection.startup();
 
-        accountDao = new AccountDaoImpl();
-        balanceDao = new BalanceDaoImpl();
+    accountDao = new AccountDaoImpl();
+    balanceDao = new BalanceDaoImpl();
 
-        accountService = new AccountServiceImpl(accountDao);
-        balanceService = new BalanceServiceImpl(balanceDao);
-        transactionManager = new TransactionManagerImpl();
-        transactionFactory = new TransactionFactory(accountService, balanceService, transactionManager);
+    accountService = new AccountServiceImpl(accountDao);
+    balanceService = new BalanceServiceImpl(balanceDao);
+    transactionManager = new TransactionManagerImpl();
+    transactionFactory = new TransactionFactory(accountService, balanceService, transactionManager);
 
-        Connection connection = ConnectionFactory.getConnection();
-        transactionContext = new TransactionContextImpl(connection);
-    }
+    Connection connection = ConnectionFactory.getConnection();
+    transactionContext = new TransactionContextImpl(connection);
+  }
 
-    @Test
-    void shouldHandleConcurrentDeposits() throws InterruptedException {
-        Account account = accountDao.insert(new Account("Mary"));
-        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        balanceDao.updateBalance(account, transactionContext);
+  @Test
+  void shouldHandleConcurrentDeposits() throws InterruptedException {
+    Account account = accountDao.insert(new Account("Mary"));
+    account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    balanceDao.updateBalance(account, transactionContext);
 
-        Long accountId = account.getId();
-        BigDecimal depositAmount = convertTwoDecimalPlace(new BigDecimal(100));
-        int numberOfThreads = 10;
+    Long accountId = account.getId();
+    BigDecimal depositAmount = convertTwoDecimalPlace(new BigDecimal(100));
+    int numberOfThreads = 10;
 
-        BigDecimal initialBalance = convertTwoDecimalPlace(new BigDecimal(1000));
-        BigDecimal expectedFinalBalance = initialBalance.add(
-                depositAmount.multiply(new BigDecimal(numberOfThreads))
-        );
+    BigDecimal initialBalance = convertTwoDecimalPlace(new BigDecimal(1000));
+    BigDecimal expectedFinalBalance =
+        initialBalance.add(depositAmount.multiply(new BigDecimal(numberOfThreads)));
 
-        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+    ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
 
-        // CountDownLatch(1) means: wait for 1 signal to start
-        CountDownLatch startLatch = new CountDownLatch(1);
+    // CountDownLatch(1) means: wait for 1 signal to start
+    CountDownLatch startLatch = new CountDownLatch(1);
 
-        // CountDownLatch(numberOfThreads) means: wait for all threads to finish
-        CountDownLatch completionLatch = new CountDownLatch(numberOfThreads);
+    // CountDownLatch(numberOfThreads) means: wait for all threads to finish
+    CountDownLatch completionLatch = new CountDownLatch(numberOfThreads);
 
-        // AtomicInteger: thread-safe counter to track successes
-        AtomicInteger successCount = new AtomicInteger(0);
-        AtomicInteger failureCount = new AtomicInteger(0);
+    // AtomicInteger: thread-safe counter to track successes
+    AtomicInteger successCount = new AtomicInteger(0);
+    AtomicInteger failureCount = new AtomicInteger(0);
 
-        for (int index = 0; index < numberOfThreads; index++) {
-            executor.submit(() -> {
-                try {
-                    // Wait for start signal (all threads wait here)
-                    startLatch.await();
-
-                    Transaction transaction = new Transaction(accountId, accountId, depositAmount, TransactionType.DEPOSIT);
-                    transactionFactory.getService(TransactionType.DEPOSIT).execute(transaction);
-
-                    successCount.incrementAndGet();
-
-                } catch (Exception e) {
-                    failureCount.incrementAndGet();
-                    e.printStackTrace();
-                } finally {
-                    completionLatch.countDown();
-                }
-            });
-        }
-
-        // This releases all waiting threads at the same time
-        startLatch.countDown();
-
-        // Wait up to 30 seconds for all threads to finish
-        boolean allCompleted = completionLatch.await(30, TimeUnit.SECONDS);
-
-        executor.shutdown();
-        executor.awaitTermination(5, TimeUnit.SECONDS);
-
-        assertThat(allCompleted).as("All threads should complete within timeout").isTrue();
-        assertThat(successCount.get()).as("All deposit operations should succeed").isEqualTo(numberOfThreads);
-        assertThat(failureCount.get()).as("No operations should fail").isZero();
-
-        Account finalAccount = accountDao.findById(accountId);
-        BigDecimal actualFinalBalance = finalAccount.getBalance();
-
-        assertThat(actualFinalBalance)
-                .as("Final balance should be 2000.00")
-                .isEqualByComparingTo(expectedFinalBalance);
-    }
-
-    @Test
-    void shouldHandleConcurrentWithdrawals() throws InterruptedException {
-        Account account = accountDao.insert(new Account("Mary"));
-        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        balanceDao.updateBalance(account, transactionContext);
-
-        Long accountId = account.getId();
-        BigDecimal withdrawAmount = convertTwoDecimalPlace(new BigDecimal(50));
-        int numberOfThreads = 10;
-
-        BigDecimal expectedFinalBalance = new BigDecimal(500);
-
-        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch completionLatch = new CountDownLatch(numberOfThreads);
-        AtomicInteger successCount = new AtomicInteger(0);
-        AtomicInteger failureCount = new AtomicInteger(0);
-
-        for (int index = 0; index < numberOfThreads; index++) {
-            executor.submit(() -> {
-                try {
-                    // Wait for start signal (all threads wait here)
-                    startLatch.await();
-
-                    Transaction transaction = new Transaction(accountId, accountId, withdrawAmount, TransactionType.WITHDRAW);
-                    transactionFactory.getService(TransactionType.WITHDRAW).execute(transaction);
-
-                    successCount.incrementAndGet();
-
-                } catch (Exception e) {
-                    failureCount.incrementAndGet();
-                    e.printStackTrace();
-                } finally {
-                    completionLatch.countDown();
-                }
-            });
-        }
-
-        startLatch.countDown();
-        boolean allCompleted = completionLatch.await(30, TimeUnit.SECONDS);
-
-        executor.shutdown();
-        executor.awaitTermination(5, TimeUnit.SECONDS);
-
-        assertThat(allCompleted).as("All threads should complete within timeout").isTrue();
-        assertThat(successCount.get()).as("All deposit operations should succeed").isEqualTo(numberOfThreads);
-        assertThat(failureCount.get()).as("No operations should fail").isZero();
-
-        Account finalAccount = accountDao.findById(accountId);
-        BigDecimal actualFinalBalance = finalAccount.getBalance();
-
-        assertThat(actualFinalBalance)
-                .as("Final balance should be 500.00")
-                .isEqualByComparingTo(expectedFinalBalance);
-    }
-
-    @Test
-    void shouldHandleConcurrentTransfers() throws InterruptedException {
-        Account accountA = accountDao.insert(new Account("AccountA"));
-        accountA = accountA.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        balanceDao.updateBalance(accountA, transactionContext);
-
-        Account accountB = accountDao.insert(new Account("AccountB"));
-        accountB = accountB.withBalance(convertTwoDecimalPlace(new BigDecimal(500)));
-        balanceDao.updateBalance(accountB, transactionContext);
-
-        Long accountAId = accountA.getId();
-        Long accountBId = accountB.getId();
-        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(100));
-        int numberOfTransfers = 5;
-
-        BigDecimal expectedBalanceA = convertTwoDecimalPlace(new BigDecimal(500));
-        BigDecimal expectedBalanceB = convertTwoDecimalPlace(new BigDecimal(1000));
-
-        ExecutorService executor = Executors.newFixedThreadPool(numberOfTransfers);
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch completionLatch = new CountDownLatch(numberOfTransfers);
-        AtomicInteger successCount = new AtomicInteger(0);
-
-        for (int index = 0; index < numberOfTransfers; index++) {
-            executor.submit(() -> {
-                try {
-                    startLatch.await();
-
-                    Transaction transaction = new Transaction(
-                            accountAId,
-                            accountBId,
-                            transferAmount,
-                            TransactionType.TRANSFER
-                    );
-
-                    transactionFactory.getService(TransactionType.TRANSFER)
-                            .execute(transaction);
-
-                    successCount.incrementAndGet();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    completionLatch.countDown();
-                }
-            });
-        }
-
-        startLatch.countDown();
-        boolean allCompleted = completionLatch.await(30, TimeUnit.SECONDS);
-
-        executor.shutdown();
-        executor.awaitTermination(5, TimeUnit.SECONDS);
-
-        assertThat(allCompleted).isTrue();
-        assertThat(successCount.get()).isEqualTo(numberOfTransfers);
-
-        Account finalAccountA = accountDao.findById(accountAId);
-        Account finalAccountB = accountDao.findById(accountBId);
-
-        assertThat(finalAccountA.getBalance())
-                .as("Account A should have $500.00")
-                .isEqualByComparingTo(expectedBalanceA);
-
-        assertThat(finalAccountB.getBalance())
-                .as("Account B should have $1000.00")
-                .isEqualByComparingTo(expectedBalanceB);
-
-        BigDecimal totalBefore = convertTwoDecimalPlace(new BigDecimal(1500));
-        BigDecimal totalAfter = finalAccountA.getBalance().add(finalAccountB.getBalance());
-        assertThat(totalAfter)
-                .as("Total money should be preserved")
-                .isEqualByComparingTo(totalBefore);
-    }
-
-    /**
-     * Test that deadlocks don't occur when transfers happen in opposite directions.
-     *
-     * Thread 1: Transfer A → B
-     * Thread 2: Transfer B → A
-     *
-     * Without proper locking order: DEADLOCK!
-     * With proper locking order: Both complete successfully
-     */
-    @Test
-    void shouldPreventDeadlocks() throws InterruptedException {
-        Account accountA = accountDao.insert(new Account("AccountA"));
-        accountA = accountA.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        balanceDao.updateBalance(accountA, transactionContext);
-
-        Account accountB = accountDao.insert(new Account("AccountB"));
-        accountB = accountB.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        balanceDao.updateBalance(accountB, transactionContext);
-
-        Long accountAId = accountA.getId();
-        Long accountBId = accountB.getId();
-        BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(100));
-
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch completionLatch = new CountDownLatch(2);
-        AtomicInteger successCount = new AtomicInteger(0);
-
-        // Thread 1: A → B
-        executor.submit(() -> {
+    for (int index = 0; index < numberOfThreads; index++) {
+      executor.submit(
+          () -> {
             try {
-                startLatch.await();
-                Transaction transaction = new Transaction(
-                        accountAId, accountBId, transferAmount, TransactionType.TRANSFER
-                );
-                transactionFactory.getService(TransactionType.TRANSFER).execute(transaction);
-                successCount.incrementAndGet();
+              // Wait for start signal (all threads wait here)
+              startLatch.await();
+
+              Transaction transaction =
+                  new Transaction(accountId, accountId, depositAmount, TransactionType.DEPOSIT);
+              transactionFactory.getService(TransactionType.DEPOSIT).execute(transaction);
+
+              successCount.incrementAndGet();
+
             } catch (Exception e) {
-                e.printStackTrace();
+              failureCount.incrementAndGet();
+              e.printStackTrace();
             } finally {
-                completionLatch.countDown();
+              completionLatch.countDown();
             }
+          });
+    }
+
+    // This releases all waiting threads at the same time
+    startLatch.countDown();
+
+    // Wait up to 30 seconds for all threads to finish
+    boolean allCompleted = completionLatch.await(30, TimeUnit.SECONDS);
+
+    executor.shutdown();
+    executor.awaitTermination(5, TimeUnit.SECONDS);
+
+    assertThat(allCompleted).as("All threads should complete within timeout").isTrue();
+    assertThat(successCount.get())
+        .as("All deposit operations should succeed")
+        .isEqualTo(numberOfThreads);
+    assertThat(failureCount.get()).as("No operations should fail").isZero();
+
+    Account finalAccount = accountDao.findById(accountId);
+    BigDecimal actualFinalBalance = finalAccount.getBalance();
+
+    assertThat(actualFinalBalance)
+        .as("Final balance should be 2000.00")
+        .isEqualByComparingTo(expectedFinalBalance);
+  }
+
+  @Test
+  void shouldHandleConcurrentWithdrawals() throws InterruptedException {
+    Account account = accountDao.insert(new Account("Mary"));
+    account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    balanceDao.updateBalance(account, transactionContext);
+
+    Long accountId = account.getId();
+    BigDecimal withdrawAmount = convertTwoDecimalPlace(new BigDecimal(50));
+    int numberOfThreads = 10;
+
+    BigDecimal expectedFinalBalance = new BigDecimal(500);
+
+    ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+    CountDownLatch startLatch = new CountDownLatch(1);
+    CountDownLatch completionLatch = new CountDownLatch(numberOfThreads);
+    AtomicInteger successCount = new AtomicInteger(0);
+    AtomicInteger failureCount = new AtomicInteger(0);
+
+    for (int index = 0; index < numberOfThreads; index++) {
+      executor.submit(
+          () -> {
+            try {
+              // Wait for start signal (all threads wait here)
+              startLatch.await();
+
+              Transaction transaction =
+                  new Transaction(accountId, accountId, withdrawAmount, TransactionType.WITHDRAW);
+              transactionFactory.getService(TransactionType.WITHDRAW).execute(transaction);
+
+              successCount.incrementAndGet();
+
+            } catch (Exception e) {
+              failureCount.incrementAndGet();
+              e.printStackTrace();
+            } finally {
+              completionLatch.countDown();
+            }
+          });
+    }
+
+    startLatch.countDown();
+    boolean allCompleted = completionLatch.await(30, TimeUnit.SECONDS);
+
+    executor.shutdown();
+    executor.awaitTermination(5, TimeUnit.SECONDS);
+
+    assertThat(allCompleted).as("All threads should complete within timeout").isTrue();
+    assertThat(successCount.get())
+        .as("All deposit operations should succeed")
+        .isEqualTo(numberOfThreads);
+    assertThat(failureCount.get()).as("No operations should fail").isZero();
+
+    Account finalAccount = accountDao.findById(accountId);
+    BigDecimal actualFinalBalance = finalAccount.getBalance();
+
+    assertThat(actualFinalBalance)
+        .as("Final balance should be 500.00")
+        .isEqualByComparingTo(expectedFinalBalance);
+  }
+
+  @Test
+  void shouldHandleConcurrentTransfers() throws InterruptedException {
+    Account accountA = accountDao.insert(new Account("AccountA"));
+    accountA = accountA.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    balanceDao.updateBalance(accountA, transactionContext);
+
+    Account accountB = accountDao.insert(new Account("AccountB"));
+    accountB = accountB.withBalance(convertTwoDecimalPlace(new BigDecimal(500)));
+    balanceDao.updateBalance(accountB, transactionContext);
+
+    Long accountAId = accountA.getId();
+    Long accountBId = accountB.getId();
+    BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(100));
+    int numberOfTransfers = 5;
+
+    BigDecimal expectedBalanceA = convertTwoDecimalPlace(new BigDecimal(500));
+    BigDecimal expectedBalanceB = convertTwoDecimalPlace(new BigDecimal(1000));
+
+    ExecutorService executor = Executors.newFixedThreadPool(numberOfTransfers);
+    CountDownLatch startLatch = new CountDownLatch(1);
+    CountDownLatch completionLatch = new CountDownLatch(numberOfTransfers);
+    AtomicInteger successCount = new AtomicInteger(0);
+
+    for (int index = 0; index < numberOfTransfers; index++) {
+      executor.submit(
+          () -> {
+            try {
+              startLatch.await();
+
+              Transaction transaction =
+                  new Transaction(accountAId, accountBId, transferAmount, TransactionType.TRANSFER);
+
+              transactionFactory.getService(TransactionType.TRANSFER).execute(transaction);
+
+              successCount.incrementAndGet();
+            } catch (Exception e) {
+              e.printStackTrace();
+            } finally {
+              completionLatch.countDown();
+            }
+          });
+    }
+
+    startLatch.countDown();
+    boolean allCompleted = completionLatch.await(30, TimeUnit.SECONDS);
+
+    executor.shutdown();
+    executor.awaitTermination(5, TimeUnit.SECONDS);
+
+    assertThat(allCompleted).isTrue();
+    assertThat(successCount.get()).isEqualTo(numberOfTransfers);
+
+    Account finalAccountA = accountDao.findById(accountAId);
+    Account finalAccountB = accountDao.findById(accountBId);
+
+    assertThat(finalAccountA.getBalance())
+        .as("Account A should have $500.00")
+        .isEqualByComparingTo(expectedBalanceA);
+
+    assertThat(finalAccountB.getBalance())
+        .as("Account B should have $1000.00")
+        .isEqualByComparingTo(expectedBalanceB);
+
+    BigDecimal totalBefore = convertTwoDecimalPlace(new BigDecimal(1500));
+    BigDecimal totalAfter = finalAccountA.getBalance().add(finalAccountB.getBalance());
+    assertThat(totalAfter).as("Total money should be preserved").isEqualByComparingTo(totalBefore);
+  }
+
+  /**
+   * Test that deadlocks don't occur when transfers happen in opposite directions.
+   *
+   * <p>Thread 1: Transfer A → B Thread 2: Transfer B → A
+   *
+   * <p>Without proper locking order: DEADLOCK! With proper locking order: Both complete
+   * successfully
+   */
+  @Test
+  void shouldPreventDeadlocks() throws InterruptedException {
+    Account accountA = accountDao.insert(new Account("AccountA"));
+    accountA = accountA.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    balanceDao.updateBalance(accountA, transactionContext);
+
+    Account accountB = accountDao.insert(new Account("AccountB"));
+    accountB = accountB.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    balanceDao.updateBalance(accountB, transactionContext);
+
+    Long accountAId = accountA.getId();
+    Long accountBId = accountB.getId();
+    BigDecimal transferAmount = convertTwoDecimalPlace(new BigDecimal(100));
+
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    CountDownLatch startLatch = new CountDownLatch(1);
+    CountDownLatch completionLatch = new CountDownLatch(2);
+    AtomicInteger successCount = new AtomicInteger(0);
+
+    // Thread 1: A → B
+    executor.submit(
+        () -> {
+          try {
+            startLatch.await();
+            Transaction transaction =
+                new Transaction(accountAId, accountBId, transferAmount, TransactionType.TRANSFER);
+            transactionFactory.getService(TransactionType.TRANSFER).execute(transaction);
+            successCount.incrementAndGet();
+          } catch (Exception e) {
+            e.printStackTrace();
+          } finally {
+            completionLatch.countDown();
+          }
         });
 
-        // Thread 2: B → A (opposite direction - potential deadlock!)
-        executor.submit(() -> {
-            try {
-                startLatch.await();
-                Transaction transaction = new Transaction(
-                        accountBId, accountAId, transferAmount, TransactionType.TRANSFER
-                );
-                transactionFactory.getService(TransactionType.TRANSFER).execute(transaction);
-                successCount.incrementAndGet();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                completionLatch.countDown();
-            }
+    // Thread 2: B → A (opposite direction - potential deadlock!)
+    executor.submit(
+        () -> {
+          try {
+            startLatch.await();
+            Transaction transaction =
+                new Transaction(accountBId, accountAId, transferAmount, TransactionType.TRANSFER);
+            transactionFactory.getService(TransactionType.TRANSFER).execute(transaction);
+            successCount.incrementAndGet();
+          } catch (Exception e) {
+            e.printStackTrace();
+          } finally {
+            completionLatch.countDown();
+          }
         });
 
-        startLatch.countDown();
+    startLatch.countDown();
 
-        boolean allCompleted = completionLatch.await(10, TimeUnit.SECONDS);
+    boolean allCompleted = completionLatch.await(10, TimeUnit.SECONDS);
 
-        executor.shutdown();
-        executor.awaitTermination(5, TimeUnit.SECONDS);
+    executor.shutdown();
+    executor.awaitTermination(5, TimeUnit.SECONDS);
 
-        assertThat(allCompleted)
-                .as("Both transfers should complete without deadlock")
-                .isTrue();
+    assertThat(allCompleted).as("Both transfers should complete without deadlock").isTrue();
 
-        assertThat(successCount.get())
-                .as("Both transfers should succeed")
-                .isEqualTo(2);
+    assertThat(successCount.get()).as("Both transfers should succeed").isEqualTo(2);
+  }
+
+  @AfterEach
+  void tearDown() throws SQLException {
+    if (transactionContext instanceof TransactionContextImpl) {
+      ((TransactionContextImpl) transactionContext).getConnection().close();
     }
-
-    @AfterEach
-    void tearDown() throws SQLException {
-        if (transactionContext instanceof TransactionContextImpl) {
-            ((TransactionContextImpl) transactionContext).getConnection().close();
-        }
-        TestDatabaseUtils.deleteAllAccounts();
-    }
-
+    TestDatabaseUtils.deleteAllAccounts();
+  }
 }

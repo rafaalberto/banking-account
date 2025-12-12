@@ -7,20 +7,22 @@ import com.api.account.service.BalanceService;
 
 public class BalanceServiceImpl implements BalanceService {
 
-    private final BalanceDao balanceDao;
+  private final BalanceDao balanceDao;
 
-    public BalanceServiceImpl(BalanceDao balanceDao) {
-        this.balanceDao = balanceDao;
-    }
+  public BalanceServiceImpl(final BalanceDao balanceDao) {
+    this.balanceDao = balanceDao;
+  }
 
-    @Override
-    public void updateBalance(Account account, TransactionContext transactionContext) {
-        balanceDao.updateBalance(account, transactionContext);
-    }
+  @Override
+  public void updateBalance(final Account account, final TransactionContext transactionContext) {
+    balanceDao.updateBalance(account, transactionContext);
+  }
 
-    @Override
-    public void updateBalancesForTransfer(Account accountSender, Account accountReceiver, TransactionContext transactionContext) {
-        balanceDao.updateBalancesForTransfer(accountSender, accountReceiver, transactionContext);
-    }
-
+  @Override
+  public void updateBalancesForTransfer(
+      final Account accountSender,
+      final Account accountReceiver,
+      final TransactionContext transactionContext) {
+    balanceDao.updateBalancesForTransfer(accountSender, accountReceiver, transactionContext);
+  }
 }

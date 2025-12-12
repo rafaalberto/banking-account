@@ -1,18 +1,17 @@
 package com.api.account.enumeration;
 
 public enum TransactionType {
+  DEPOSIT("Deposit"),
+  TRANSFER("Transfer"),
+  WITHDRAW("Withdraw");
 
-    DEPOSIT("Deposit"),
-    TRANSFER("Transfer"),
-    WITHDRAW("Withdraw");
+  private final String description;
 
-    private final String description;
+  TransactionType(final String description) {
+    this.description = description;
+  }
 
-    TransactionType(String description) {
-        this.description = description;
-    }
-
-    public String getDescription() {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 }
