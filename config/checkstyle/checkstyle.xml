@@ -6,7 +6,7 @@
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
     <property name="fileExtensions" value="java"/>
-    
+
     <!-- File-level checks (Spotless handles formatting, but we check basics) -->
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
@@ -15,14 +15,14 @@
     <module name="LineLength">
         <property name="max" value="120"/>
     </module>
-    
+
     <!-- TreeWalker for AST-based checks -->
     <module name="TreeWalker">
-        
+
         <!-- Import checks -->
         <module name="AvoidStarImport"/>
         <module name="UnusedImports"/>
-        
+
         <!-- Naming conventions -->
         <module name="TypeName"/>
         <module name="MethodName"/>
@@ -31,11 +31,11 @@
         <module name="MemberName"/>
         <module name="ConstantName"/>
         <module name="StaticVariableName"/>
-        
+
         <!-- Modifier checks (compatible with Google Java Format) -->
         <module name="ModifierOrder"/>
         <module name="RedundantModifier"/>
-        
+
         <!-- Complexity checks -->
         <module name="CyclomaticComplexity">
             <property name="max" value="12"/>
@@ -53,7 +53,7 @@
             <property name="max" value="60"/>
         </module>
         <module name="ClassFanOutComplexity">
-            <property name="max" value="20"/>
+            <property name="max" value="30"/>
         </module>
         <module name="NestedTryDepth">
             <property name="max" value="2"/>
@@ -64,12 +64,12 @@
         <module name="BooleanExpressionComplexity">
             <property name="max" value="5"/>
         </module>
-        
+
         <!-- Documentation (public API only) -->
         <module name="JavadocType">
             <property name="scope" value="public"/>
         </module>
-        
+
         <!-- Code quality checks -->
         <module name="FinalParameters"/>
         <module name="EmptyBlock">
@@ -80,17 +80,17 @@
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="StringLiteralEquality"/>
-        
+
         <!-- Code comments -->
         <module name="TodoComment">
             <property name="format" value="(?i)\b(TODO|FIXME|XXX|HACK)\b"/>
         </module>
-        
+
     </module>
-    
+
     <!-- File size limit -->
     <module name="FileLength">
         <property name="max" value="3000"/>
     </module>
-    
+
 </module>

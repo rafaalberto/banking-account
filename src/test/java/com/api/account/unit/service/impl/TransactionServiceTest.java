@@ -1,5 +1,13 @@
 package com.api.account.unit.service.impl;
 
+import static com.api.account.enumeration.TransactionType.DEPOSIT;
+import static com.api.account.enumeration.TransactionType.TRANSFER;
+import static com.api.account.enumeration.TransactionType.WITHDRAW;
+import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.api.account.database.TransactionContext;
 import com.api.account.exception.BusinessException;
 import com.api.account.model.Account;
@@ -11,6 +19,7 @@ import com.api.account.service.TransactionService;
 import com.api.account.service.impl.DepositServiceImpl;
 import com.api.account.service.impl.TransferServiceImpl;
 import com.api.account.service.impl.WithdrawServiceImpl;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,172 +27,213 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-
-import static com.api.account.enumeration.TransactionType.*;
-import static com.api.account.utils.NumericConverter.convertTwoDecimalPlace;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest {
 
-    private Account account;
+  private Account account;
 
-    @Mock
-    private AccountService accountService;
+  @Mock private AccountService accountService;
 
-    @Mock
-    private BalanceService balanceService;
+  @Mock private BalanceService balanceService;
 
-    @Mock
-    private TransactionManager transactionManager;
+  @Mock private TransactionManager transactionManager;
 
-    @Mock
-    private TransactionContext transactionContext;
+  @Mock private TransactionContext transactionContext;
 
-    private TransactionService depositService;
+  private TransactionService depositService;
 
-    private TransactionService withdrawService;
+  private TransactionService withdrawService;
 
-    private TransactionService transferService;
+  private TransactionService transferService;
 
-    @BeforeEach
-    public void setUp() {
-        account = new Account(1L, "Rafael");
-        depositService = new DepositServiceImpl(accountService, balanceService, transactionManager);
-        withdrawService = new WithdrawServiceImpl(accountService, balanceService, transactionManager);
-        transferService = new TransferServiceImpl(accountService, balanceService, transactionManager);
-        
-        // Mock TransactionManager to execute the lambda
-        when(transactionManager.executeInTransaction(any())).thenAnswer(invocation -> {
-            com.api.account.service.TransactionOperation<?> operation = invocation.getArgument(0);
-            return operation.execute(transactionContext);
-        });
-    }
+  @BeforeEach
+  public void setUp() {
+    account = new Account(1L, "Rafael");
+    depositService = new DepositServiceImpl(accountService, balanceService, transactionManager);
+    withdrawService = new WithdrawServiceImpl(accountService, balanceService, transactionManager);
+    transferService = new TransferServiceImpl(accountService, balanceService, transactionManager);
 
-    @Test
-    public void shouldDepositSuccessfully() {
-        Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), DEPOSIT);
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
-        depositService.execute(transaction);
-    }
+    // Mock TransactionManager to execute the lambda
+    when(transactionManager.executeInTransaction(any()))
+        .thenAnswer(
+            invocation -> {
+              com.api.account.service.TransactionOperation<?> operation = invocation.getArgument(0);
+              return operation.execute(transactionContext);
+            });
+  }
 
-    @Test
-    public void shouldDenyDepositWithDifferentAccounts() {
-        Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), DEPOSIT);
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
+  @Test
+  public void shouldDepositSuccessfully() {
+    Transaction transaction =
+        new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), DEPOSIT);
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(account);
+    depositService.execute(transaction);
+  }
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                depositService.execute(transaction)).withMessage("Account Sender and Receiver must be the same");
-    }
+  @Test
+  public void shouldDenyDepositWithDifferentAccounts() {
+    Transaction transaction =
+        new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), DEPOSIT);
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(account);
 
-    @Test
-    public void shouldDenyDepositWithAmountZero() {
-        Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(BigDecimal.ZERO), DEPOSIT);
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> depositService.execute(transaction))
+        .withMessage("Account Sender and Receiver must be the same");
+  }
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                depositService.execute(transaction)).withMessage("Amount must be greater than zero");
-    }
+  @Test
+  public void shouldDenyDepositWithAmountZero() {
+    Transaction transaction =
+        new Transaction(1L, 1L, convertTwoDecimalPlace(BigDecimal.ZERO), DEPOSIT);
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(account);
 
-    @Test
-    public void shouldWithdrawSuccessfully() {
-        Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
-        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
-        withdrawService.execute(transaction);
-    }
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> depositService.execute(transaction))
+        .withMessage("Amount must be greater than zero");
+  }
 
-    @Test
-    public void shouldDenyWithdrawWithDifferentAccounts() {
-        Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
-        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
+  @Test
+  public void shouldWithdrawSuccessfully() {
+    Transaction transaction =
+        new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
+    account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(account);
+    withdrawService.execute(transaction);
+  }
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                withdrawService.execute(transaction)).withMessage("Account Sender and Receiver must be the same");
-    }
+  @Test
+  public void shouldDenyWithdrawWithDifferentAccounts() {
+    Transaction transaction =
+        new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
+    account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(account);
 
-    @Test
-    public void shouldDenyWithdrawWithAmountZero() {
-        Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(BigDecimal.ZERO), WITHDRAW);
-        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> withdrawService.execute(transaction))
+        .withMessage("Account Sender and Receiver must be the same");
+  }
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                withdrawService.execute(transaction)).withMessage("Amount must be greater than zero");
-    }
+  @Test
+  public void shouldDenyWithdrawWithAmountZero() {
+    Transaction transaction =
+        new Transaction(1L, 1L, convertTwoDecimalPlace(BigDecimal.ZERO), WITHDRAW);
+    account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(account);
 
-    @Test
-    public void shouldDenyWithdrawWithInsufficientFunds() {
-        Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
-        account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(500)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(account);
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> withdrawService.execute(transaction))
+        .withMessage("Amount must be greater than zero");
+  }
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                withdrawService.execute(transaction)).withMessage("Insufficient funds");
-    }
+  @Test
+  public void shouldDenyWithdrawWithInsufficientFunds() {
+    Transaction transaction =
+        new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), WITHDRAW);
+    account = account.withBalance(convertTwoDecimalPlace(new BigDecimal(500)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(account);
 
-    @Test
-    public void shouldTransferSuccessfully() {
-        Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> withdrawService.execute(transaction))
+        .withMessage("Insufficient funds");
+  }
 
-        Account accountSender = new Account(1L, "Rafael", convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(accountSender);
+  @Test
+  public void shouldTransferSuccessfully() {
+    Transaction transaction =
+        new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
 
-        Account accountReceiver = new Account(2L, "Mary", convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext)).thenReturn(accountReceiver);
+    Account accountSender = new Account(1L, "Rafael", convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(accountSender);
 
-        // Stub the balance update to prevent actual database call
-        Mockito.doNothing().when(balanceService).updateBalancesForTransfer(
-                Mockito.any(Account.class), 
-                Mockito.any(Account.class), 
-                Mockito.any(TransactionContext.class));
+    Account accountReceiver = new Account(2L, "Mary", convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext))
+        .thenReturn(accountReceiver);
 
-        transferService.execute(transaction);
-    }
+    // Stub the balance update to prevent actual database call
+    Mockito.doNothing()
+        .when(balanceService)
+        .updateBalancesForTransfer(
+            Mockito.any(Account.class),
+            Mockito.any(Account.class),
+            Mockito.any(TransactionContext.class));
 
-    @Test
-    public void shouldDenyTransferWithSameAccount() {
-        Transaction transaction = new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
+    transferService.execute(transaction);
+  }
 
-        Account accountSender = new Account(1L, "Rafael", convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(accountSender);
+  @Test
+  public void shouldDenyTransferWithSameAccount() {
+    Transaction transaction =
+        new Transaction(1L, 1L, convertTwoDecimalPlace(new BigDecimal(1000)), TRANSFER);
 
-        Account accountReceiver = new Account(2L, "Mary", convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext)).thenReturn(accountReceiver);
+    Account accountSender = new Account(1L, "Rafael", convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(accountSender);
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                transferService.execute(transaction)).withMessage("Account Sender and Receiver must be different");
-    }
+    Account accountReceiver = new Account(2L, "Mary", convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext))
+        .thenReturn(accountReceiver);
 
-    @Test
-    public void shouldDenyTransferWithAmountZero() {
-        Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(BigDecimal.ZERO), TRANSFER);
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> transferService.execute(transaction))
+        .withMessage("Account Sender and Receiver must be different");
+  }
 
-        Account accountSender = new Account(1L, "Rafael", new BigDecimal(1000));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(accountSender);
+  @Test
+  public void shouldDenyTransferWithAmountZero() {
+    Transaction transaction =
+        new Transaction(1L, 2L, convertTwoDecimalPlace(BigDecimal.ZERO), TRANSFER);
 
-        Account accountReceiver = new Account(2L, "Mary", new BigDecimal(1000));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext)).thenReturn(accountReceiver);
+    Account accountSender = new Account(1L, "Rafael", new BigDecimal(1000));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(accountSender);
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                transferService.execute(transaction)).withMessage("Amount must be greater than zero");
-    }
+    Account accountReceiver = new Account(2L, "Mary", new BigDecimal(1000));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext))
+        .thenReturn(accountReceiver);
 
-    @Test
-    public void shouldDenyTransferWithInsufficientFunds() {
-        Transaction transaction = new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(2000)), TRANSFER);
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> transferService.execute(transaction))
+        .withMessage("Amount must be greater than zero");
+  }
 
-        Account accountSender = new Account(1L, "Rafael", convertTwoDecimalPlace(new BigDecimal(500)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext)).thenReturn(accountSender);
+  @Test
+  public void shouldDenyTransferWithInsufficientFunds() {
+    Transaction transaction =
+        new Transaction(1L, 2L, convertTwoDecimalPlace(new BigDecimal(2000)), TRANSFER);
 
-        Account accountReceiver = new Account(2L, "Mary", convertTwoDecimalPlace(new BigDecimal(1000)));
-        Mockito.when(accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext)).thenReturn(accountReceiver);
+    Account accountSender = new Account(1L, "Rafael", convertTwoDecimalPlace(new BigDecimal(500)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountSenderId(), transactionContext))
+        .thenReturn(accountSender);
 
-        assertThatExceptionOfType(BusinessException.class).isThrownBy(() ->
-                transferService.execute(transaction)).withMessage("Insufficient funds");
-    }
+    Account accountReceiver = new Account(2L, "Mary", convertTwoDecimalPlace(new BigDecimal(1000)));
+    Mockito.when(
+            accountService.findByIdWithLock(transaction.getAccountReceiverId(), transactionContext))
+        .thenReturn(accountReceiver);
+
+    assertThatExceptionOfType(BusinessException.class)
+        .isThrownBy(() -> transferService.execute(transaction))
+        .withMessage("Insufficient funds");
+  }
 }

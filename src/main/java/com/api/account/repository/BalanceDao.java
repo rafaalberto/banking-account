@@ -5,8 +5,8 @@ import com.api.account.model.Account;
 
 public interface BalanceDao {
 
-    Account updateBalance(Account account, TransactionContext transactionContext);
+  Account updateBalance(Account account, TransactionContext transactionContext);
 
-    void updateBalancesForTransfer(Account accountSender, Account accountReceiver, TransactionContext transactionContext);
-
+  void updateBalancesForTransfer(
+      Account accountSender, Account accountReceiver, TransactionContext transactionContext);
 }

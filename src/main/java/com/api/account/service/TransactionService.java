@@ -4,5 +4,5 @@ import com.api.account.model.Transaction;
 
 public interface TransactionService {
 
-    void execute(Transaction transaction);
+  void execute(Transaction transaction);
 }

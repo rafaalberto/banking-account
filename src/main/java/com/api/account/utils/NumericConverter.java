@@ -5,9 +5,9 @@ import java.math.RoundingMode;
 
 public final class NumericConverter {
 
-    private static final int DECIMAL_PLACE = 2;
+  private static final int DECIMAL_PLACE = 2;
 
-    public static BigDecimal convertTwoDecimalPlace(BigDecimal value) {
-        return value.setScale(DECIMAL_PLACE, RoundingMode.FLOOR);
-    }
+  public static BigDecimal convertTwoDecimalPlace(final BigDecimal value) {
+    return value.setScale(DECIMAL_PLACE, RoundingMode.FLOOR);
+  }
 }
