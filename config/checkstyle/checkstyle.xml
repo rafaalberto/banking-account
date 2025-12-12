@@ -6,6 +6,12 @@
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
     <property name="fileExtensions" value="java"/>
+    
+    <!-- Suppression filter for acceptable violations -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
+        <property name="optional" value="false"/>
+    </module>
 
     <!-- File-level checks (Spotless handles formatting, but we check basics) -->
     <module name="FileTabCharacter">
@@ -53,7 +59,7 @@
             <property name="max" value="60"/>
         </module>
         <module name="ClassFanOutComplexity">
-            <property name="max" value="30"/>
+            <property name="max" value="20"/>
         </module>
         <module name="NestedTryDepth">
             <property name="max" value="2"/>
@@ -71,6 +77,20 @@
         </module>
 
         <!-- Code quality checks -->
+        <!--
+            FinalParameters: Enforces final keyword on method and constructor parameters.
+            
+            Rationale:
+            - Prevents accidental parameter reassignment, reducing bugs
+            - Makes code intent explicit: parameters are immutable within the method
+            - Improves readability by clearly distinguishing parameters from local variables
+            - Aligns with functional programming principles and immutability best practices
+            - Common practice in enterprise Java codebases (e.g., Google Java Style Guide)
+            
+            This rule applies to all methods and constructors, ensuring consistent
+            code quality across the codebase. For portfolio projects, this demonstrates
+            attention to defensive programming and code safety.
+        -->
         <module name="FinalParameters"/>
         <module name="EmptyBlock">
             <property name="option" value="TEXT"/>

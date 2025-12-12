@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'com.diffplug.spotless' version '6.23.0'
-    // optionally: id 'com.github.johnrengelman.shadow' version '8.1.1' // recommended for fat jars
 }
 
 checkstyle {
@@ -56,8 +55,7 @@ dependencies {
     implementation "com.zaxxer:HikariCP:${hikariCPVersion}"
 
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-    // For local/dev/testing you can keep slf4j-simple, but prefer a production binding (e.g. logback-classic)
-    implementation "org.slf4j:slf4j-simple:${slf4jVersion}" // TODO: consider replacing with logback-classic
+    implementation "org.slf4j:slf4j-simple:${slf4jVersion}"
 
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
 
@@ -72,9 +70,8 @@ tasks.withType(Checkstyle).configureEach {
     reports {
         xml.required = false
         html.required = true
-        html.outputLocation = file("$buildDir/reports/checkstyle/checkstyle.html")
+        html.outputLocation = layout.buildDirectory.file('reports/checkstyle/checkstyle.html')
     }
-    // keep ordering control, but do not declare dependsOn here to avoid redundant wiring
 }
 
 tasks.named('checkstyleMain') {
@@ -95,14 +92,12 @@ tasks.withType(Test).configureEach {
     }
 }
 
-// Configure unit test task
 test {
     useJUnitPlatform()
     exclude "**/integration/**"
     exclude "**/*IntegrationTest.java"
 }
 
-// Integration tests as a separate task (consider creating a separate sourceSet if you want isolation)
 tasks.register('integrationTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
